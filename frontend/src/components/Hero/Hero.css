@@ -4,10 +4,12 @@
 
 .hero-section {
   min-height: 100vh;
-  background: linear-gradient(135deg, #eef4ff, #f8fbff);
+  /* background: linear-gradient(135deg, #eef4ff, #f8fbff); */
   display: flex;
   align-items: center;
   padding: 0 20px;
+  background: #1868db;
+    font-family: "Inter", sans-serif;
 }
 
 .frame {
@@ -19,6 +21,27 @@
   gap: 2rem;
   justify-content: space-between;
   align-items: center;
+  position: relative;
+}
+
+.frame img{
+  position: absolute;
+  width: 50%;
+  left: 55%;
+  z-index: 1;
+}
+
+.hero-background-box{
+  width: 19%;
+  height: 20%;
+  /* background-color: #f7b42e; */
+  position: absolute;
+  transform: rotate(-4deg);
+  top: 8%;
+  left: -0.5%;
+  z-index: 1;
+  border-radius: 5px;
+
 }
 
 .hero-content {
@@ -26,17 +49,26 @@
 }
 
 .hero-content h1 {
-  font-size: 3rem;
+  font-size: 3.5rem;
   line-height: 1.2;
   margin-bottom: 1rem;
-  color: #111827;
+  color: #ffffff;
+  font-weight: 800;
+  z-index: 100;
+  position: sticky;
+}
+
+.hero-content h1 span{
+  color: rgb(255, 255, 255);
+  text-shadow: 1px 1px 1px rgb(57, 57, 57);
 }
 
 .hero-content p {
   font-size: 1.2rem;
-  color: #4b5563;
+  color: #ffffff;
   margin-bottom: 2rem;
   max-width: 520px;
+  font-weight: 500;
 }
 
 .hero-buttons {
@@ -48,19 +80,23 @@
   padding: 12px 28px;
   border-radius: 8px;
   font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   border: none;
 }
 
 .btn.primary {
-  background-color: rgb(24, 104, 219);
-  color: white;
+  background-color: #f7b42e;
+  color: rgb(0, 0, 0);
+  border:  none;
+  font-weight: 500;
 }
 
 .btn.outline {
   background-color: white;
   color: rgb(24, 104, 219);
+  font-weight: 500;
   border: 2px solid rgb(24, 104, 219);
 }
 
@@ -71,6 +107,7 @@
 
 .hero-illustration {
   flex: 1 1 500px;
+  z-index: 3;
 }
 
 .mock-board {

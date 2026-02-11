@@ -1,11 +1,12 @@
 import "./Hero.css";
+import hero from '../../assets/hero1.png'
 
 export default function Hero() {
   return (
     <section className="hero-section">
       <div className="frame">
         <div className="hero-content">
-          <h1>Manage projects.<br />Keep your team aligned.</h1>
+          <h1><span>Manage</span> projects.<br />Keep your <span>team</span> aligned.</h1>
           <p>
             Plan work, assign tasks, and track progress with a clear, visual workflow.
           </p>
@@ -34,6 +35,8 @@ export default function Hero() {
             </div>
           </div>
         </div>
+        <img src={hero}/>
+        <div className="hero-background-box"></div>
       </div>
     </section>
   );
