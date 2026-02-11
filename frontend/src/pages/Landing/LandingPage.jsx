@@ -5,6 +5,7 @@ import Hero from "../../components/Hero/Hero";
 import HowItWorks from "../../components/HowItWorks/HowItWorks";
 import CTASection from "../../components/Cta/Cta";
 import FeaturesSection from "../../components/Features/Features";
+import Testimonials from "../../components/Testimonials/Testimonials";
 
 const LandingPage = () => {
   return (
@@ -12,6 +13,7 @@ const LandingPage = () => {
         <Hero/>
         <FeaturesSection/>
         <HowItWorks/>
+        <Testimonials/>
         <CTASection/>
 
     </div>

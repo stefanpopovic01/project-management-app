@@ -1,0 +1,63 @@
+.tes-section {
+  width: 99vw;
+  height: 100vh;
+  font-family: "Inter", sans-serif;
+  display: flex; align-items: center; justify-content: center;
+  
+}
+
+.tes-frame{
+    width: 1200px;
+    height: 90%;
+    margin: 0 auto;
+        position: relative;
+}
+
+.tes-trapez {
+  width: 1200px; margin: 0 auto;
+  height: 28rem;
+  background: #000000;
+  clip-path: polygon(
+    2% 30%,     /* levi gornji ugao niži */
+    100% 10%,   /* desni gornji ugao viši */
+    100% 100%,  /* desna baza */
+    0% 100%     /* leva baza */
+  );
+  color: white;
+  display: flex;
+}
+
+.tes-image{
+    width: 50%;
+    height: 100%;
+}
+
+.tes-desc{
+    width: 50%;
+    height: 100%;
+    display: flex; align-items: end;
+}
+
+.tes-desc div{
+    height: 65%; width: 85%;
+}
+
+.tes-desc div h3{
+    font-size: 1.6rem; font-weight: 500;
+}
+
+.tes-desc div p{
+    font-weight: 600;
+}
+
+.tes-desc div p span{
+    font-weight: 500;
+}
+
+.tes-frame img{
+    width: 33%;
+    top: 40%;
+    left: 10%;
+    position: absolute;
+    
+}
