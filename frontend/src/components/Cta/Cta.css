@@ -1,0 +1,68 @@
+.cta-section {
+  width: 99vw;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  font-family: "Inter", sans-serif;
+}
+
+.cta-trapez {
+  width: 100%;
+  height: 31rem;
+  background: #1868db;
+  clip-path: polygon(
+    0% 38%,     /* levi gornji ugao niži */
+    100% 10%,   /* desni gornji ugao viši */
+    100% 100%,  /* desna baza */
+    0% 100%     /* leva baza */
+  );
+  position: relative;
+  color: white;
+  overflow: hidden;
+}
+
+.cta-frame{
+    width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    display: flex;
+}
+
+.cta-tittle{
+    width: 65%;
+    height: 100%;
+    display: flex; flex-direction: column; justify-content: center;
+    padding-top: 6rem;
+}
+
+.cta-tittle h1{
+    font-size: 2.3rem;
+    line-height: 1.2;
+}
+
+.cta-tittle button{
+    width: 20%;
+    height: 10%;
+    border-radius: 1rem;
+    font-weight: 600;
+    outline: none; border: none;
+  background-color: #fca700;
+  cursor: pointer;
+}
+
+.cta-tittle button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+}
+
+
+.cta-image{
+    width: 35%;
+    height: 100%;
+    display: flex; align-items: end; justify-content: center;
+}
+
+.cta-image img{
+    height: 70%;
+}

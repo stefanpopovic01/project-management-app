@@ -30,7 +30,7 @@
 
 .footer-left p {
   font-size: 0.95rem;
-  color: #4b5563;
+  color: #282b30;
   line-height: 1.6;
   max-width: 26rem;
 }
@@ -58,7 +58,7 @@
 .footer-col a {
   text-decoration: none;
   font-size: 0.9rem;
-  color: #6b7280;
+  color: #282b30;
   transition: color 0.2s ease;
 }
 
@@ -71,7 +71,7 @@
   padding-top: 1rem;
   border-top: 1px solid #e5e7eb;
   font-size: 0.85rem;
-  color: #9ca3af;
+  color: #3e424a;
   text-align: center;
 }
 

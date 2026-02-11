@@ -1,0 +1,72 @@
+
+.features-section {
+  width: 99vw;
+  height: 230vh;
+  background: #EED7FC;
+  clip-path: polygon(
+    0% 15%,    /* levi gornji ugao */
+    100% 5%,   /* desni gornji ugao */
+    100% 90%, /* donja desna */
+    0% 100%   /* donja leva */
+  );
+  display: flex; justify-content: center; align-items: center;
+   font-family: "Inter", sans-serif; 
+}
+
+.features-frame {
+  width: 1200px;
+  height: 70%;
+}
+
+.features-boxes{
+  width: 100%;
+  height: 80%;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;
+}
+
+/* .feature-box{
+  border: 1px solid rgb(0, 0, 0);
+} */
+
+.f-b-image{
+  width: 100%;
+  border-radius: 10px;
+}
+
+.f-b-image img{
+  width: 100%;
+}
+
+.f-b-desc{
+  width: 100%;
+  padding-top: 1.5rem; padding-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;
+}
+
+.f-b-desc-number{
+  width: 100%;
+  height: 15%;
+}
+
+.f-b-desc-number img{
+  width: 12%;
+}
+
+.f-b-desc h2{
+  width: 100%;
+  margin: 0px 0px 0px 0px; padding: 0px 0px 0px 0px;
+  color: black;
+  font-size: 1.7rem;
+}
+
+.f-b-desc p{
+  width: 100%;
+  margin: 0px 0px 0px 0px;
+  color: black;
+}
+
+
+@media (max-width: 600px) {
+  .features-boxes{
+      grid-template-columns: 1fr;
+  }
+}
