@@ -1,11 +1,18 @@
 import "./Testimonials.css";
+import { useRef } from "react";
+import { useRevealAnimation, useSoftReveal } from "../../hooks/animations";
 
 import LandingTitle from "../LandingTitle/LandingTitle";
 
 export default function Testimonials() {
+
+  const titleRef = useRef(null);
+
+  useRevealAnimation(titleRef);
+
   return (
-    <section className="tes-section">
-    <div className="tes-frame">
+    <section className="tes-section" >
+    <div className="tes-frame" ref={titleRef}>
         <LandingTitle h1={"For teams big and small"} p={"THear from start-ups and large enterprises that prefer Atlassian, Hear from start-ups and large enterprises that prefer Atlassian"}/>
         <div className="tes-trapez">
             <div className="tes-image"></div>

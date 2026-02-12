@@ -29,12 +29,31 @@
   width: 50%;
   left: 55%;
   z-index: 1;
+    animation: float-circle 18s ease-in-out infinite;
+}
+
+@keyframes float-circle {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(25px, -15px);
+  }
+  50% {
+    transform: translate(0, -30px);
+  }
+  75% {
+    transform: translate(-25px, -15px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
 }
 
 .hero-background-box{
   width: 19%;
   height: 20%;
-  /* background-color: #f7b42e; */
+  background-color: #f7b42e;
   position: absolute;
   transform: rotate(-4deg);
   top: 8%;
@@ -60,7 +79,7 @@
 
 .hero-content h1 span{
   color: rgb(255, 255, 255);
-  text-shadow: 1px 1px 1px rgb(57, 57, 57);
+  /* text-shadow: 1px 1px 1px rgb(57, 57, 57); */
 }
 
 .hero-content p {
