@@ -21,7 +21,7 @@ function Login() {
         <input type="email" placeholder="Enter email" required value={email} onChange={(e) => setEmail(e.target.value)}/>
 
         <label>Password</label>
-        <input type="password" placeholder="Enter password" required value={password} onChange={(e) => setPassword(e.target.value)}/>
+        <input type="password" placeholder="********" required value={password} onChange={(e) => setPassword(e.target.value)}/>
 
         <button type="submit">Submit</button>
 

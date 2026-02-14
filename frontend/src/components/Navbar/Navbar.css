@@ -81,11 +81,17 @@
   cursor: pointer;
 }
 
-.btn-text:hover {
+.btn-text a{
+  text-decoration: none;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.btn-text a:hover {
   color: rgb(24, 104, 219);
 }
 
-.btn-accent {
+.btn-accent, .btn-accent a{
   background: rgb(24, 104, 219);
   border: none;
   color: white;
@@ -93,6 +99,7 @@
   border-radius: 6px;
   font-size: 0.9rem;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .btn-accent:hover {

@@ -1,0 +1,86 @@
+.dashboard-h-container{
+    width: 99vw;
+    height: 3rem;
+    border-bottom: 1px solid #d4d5d7;
+    font-family: "Inter", sans-serif; 
+}
+
+.dashboard-h-frame{
+    width: 98%; height: 100%;
+    margin: 0 auto;
+    display: flex;
+}
+
+.dashboard-h-logo{
+    width: 14rem; height: 100%;
+    color: rgb(62, 62, 62);  font-size: 1.1rem;
+    display: flex; align-items: center; gap: 1rem;
+    font-weight: 100;
+}
+
+.dashboard-h-logo img{
+    width: 35%;
+}
+
+.dashboard-h-search{
+    width: 80%; height: 100%;
+    display: flex; align-items: center; gap: 0.5rem;
+    padding-left: 1rem;
+    color: black;
+}
+
+.dashboard-h-search input{
+    width: 70%;
+    height: 70%;
+    border-radius: 5px;
+    outline: none;
+    border: 1px solid rgb(127, 127, 127);
+    padding-left: 2.2rem;
+    font-size: 0.9rem;
+    position: relative;
+}
+
+.dashboard-h-search input:focus {
+  outline: none; 
+  border-color: #007bff; 
+}
+
+.dashboard-h-search button{
+  background: rgb(24, 104, 219);
+  height: 70%;
+  width: 8%;
+  color: white;
+  font-weight: 500;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dashboard-h-search button:hover{
+    background: rgb(40, 114, 218);
+    
+}
+
+.fa-sistrix{
+    position: absolute;
+    left: 16%;
+    font-size: 1.1rem;
+    color: rgb(127, 127, 127); 
+}
+.dashboard-h-profile{
+    width: 15%; height: 100%;
+    color: rgb(62, 62, 62); 
+    display: flex; align-items: center; justify-content: end; gap: 1.3rem;
+    font-size: 1.1rem;
+}
+
+.dashboard-h-profile i{
+    cursor: pointer;
+}
+
+.dh-profile-logo{
+    width: 10%;
+    height: 45%;
+    border: 1px solid black;
+    border-radius: 50%;
+}

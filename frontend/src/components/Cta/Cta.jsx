@@ -14,8 +14,8 @@ export default function CTASection() {
   
   return (
     <section className="cta-section">
-      <div className="cta-trapez">
-        <div className="cta-frame" ref={titleRef}>
+      <div className="cta-trapez" ref={titleRef}>
+        <div className="cta-frame">
             <div className="cta-tittle">
                     <h1>No matter what you’re trying to dream up, we help you get it done</h1>
                     <button>Get Flowly Free</button>

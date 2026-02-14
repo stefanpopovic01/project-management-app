@@ -53,7 +53,7 @@
 .hero-background-box{
   width: 19%;
   height: 20%;
-  background-color: #f7b42e;
+  /* background-color: #f7b42e; */
   position: absolute;
   transform: rotate(-4deg);
   top: 8%;

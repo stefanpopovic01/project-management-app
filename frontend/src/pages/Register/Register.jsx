@@ -23,17 +23,17 @@ function Register() {
         <label>Username</label>
         <input type="text" placeholder="Enter username" required value={username} onChange={(e) => setUsername(e.target.value)}/>
 
-        <label>Name</label>
+        {/* <label>Name</label>
         <input type="text" placeholder="Enter name" required value={name} onChange={(e) => setName(e.target.value)}/>
 
         <label>Surname</label>
-        <input type="text" placeholder="Enter surname" required value={surname} onChange={(e) => setSurname(e.target.value)}/>
+        <input type="text" placeholder="Enter surname" required value={surname} onChange={(e) => setSurname(e.target.value)}/> */}
 
         <label>Email</label>
         <input type="email" placeholder="Enter email" required value={email} onChange={(e) => setEmail(e.target.value)}/>
 
         <label>Password</label>
-        <input type="password" placeholder="Enter Password" required value={password} onChange={(e) => setPassword(e.target.value)}/>
+        <input type="password" placeholder="********" required value={password} onChange={(e) => setPassword(e.target.value)}/>
 
         <button type="submit">Submit</button>
 
