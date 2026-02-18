@@ -1,6 +1,11 @@
 import "./VerticalNavbar.css";
+import { useState } from "react";
+
+import SidebarNotifications from "../SidebarNotifications/SidebarNotifications";
 
 const VerticalNavbar = () => {
+
+const [notificationMenu, setNotificationMenu] = useState(false);
   return (
     <nav className="dh-sidebar">
       <div className="dh-sidebar-inner">
@@ -22,13 +27,15 @@ const VerticalNavbar = () => {
             <i className="fa-solid fa-chevron-right dh-sidebar-arrow"></i>
           </a>
 
-          <a href="#" className="dh-sidebar-link">
+          <a href="#" className="dh-sidebar-link" onClick={() => setNotificationMenu(!notificationMenu)}>
             <div className="dh-sidebar-left">
               <i className="fa-solid fa-bell"></i>
               <span>Notifications</span>
             </div>
             <i className="fa-solid fa-chevron-right dh-sidebar-arrow"></i>
           </a>
+
+            {notificationMenu && (<SidebarNotifications/> )}
 
           <a href="#" className="dh-sidebar-link">
             <div className="dh-sidebar-left">

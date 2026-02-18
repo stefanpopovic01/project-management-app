@@ -2,7 +2,6 @@
   margin-left: 14rem;
   padding: 4rem 2.5rem 2rem 2.5rem;
   font-family: "Inter", sans-serif;
-  position: relative;
 }
 
 .fy-title {
@@ -16,8 +15,8 @@
     z-index: -1;
     position: absolute;
     top: 30%;
-    left: 30%;
-    width: 40%;
+    left: 40%;
+    width: 35%;
 }
 
 /* SECTION */
@@ -78,7 +77,6 @@
 
 .fy-project-card:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  transform: translateY(-2px);
 }
 
 .fy-project-icon {
