@@ -1,0 +1,166 @@
+.fy-container {
+  margin-left: 14rem;
+  padding: 4rem 2.5rem 2rem 2.5rem;
+  font-family: "Inter", sans-serif;
+  position: relative;
+}
+
+.fy-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1f1f23;
+  margin-bottom: 2rem;
+}
+
+.fy-img{
+    z-index: -1;
+    position: absolute;
+    top: 30%;
+    left: 30%;
+    width: 40%;
+}
+
+/* SECTION */
+
+.fy-section {
+  margin-bottom: 3rem;
+}
+
+.fy-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.fy-section-header h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2f2f33;
+}
+
+/* PAGINATION */
+
+.fy-pagination button {
+  border: none;
+  background: #f3f4f6;
+  padding: 5px 9px;
+  margin-left: 5px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #444;
+  transition: background 0.2s ease;
+}
+
+.fy-pagination button:hover {
+  background: #e5e7eb;
+}
+
+/* PROJECTS GRID */
+
+.fy-projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.fy-project-card {
+  background: #fafafa;
+  border: 1px solid #d7d7d7;
+  border-radius: 14px;
+  padding: 1.2rem;
+  display: flex;
+  gap: 1rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.fy-project-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.fy-project-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(24, 104, 219, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(24, 104, 219);
+  font-size: 18px;
+}
+
+.fy-project-content h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f1f23;
+  margin-bottom: 4px;
+}
+
+.fy-project-creator {
+  font-size: 12px;
+  color: #8c8f96;
+  margin-bottom: 6px;
+}
+
+.fy-project-desc {
+  font-size: 12.5px;
+  color: #5f6368;
+}
+
+/* TASKS GRID */
+
+.fy-tasks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.fy-task-card {
+  background: #ffffff;
+  border: 1px solid #d7d7d7;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.fy-task-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+.fy-task-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fy-task-left i {
+  color: rgb(24, 104, 219);
+  font-size: 15px;
+}
+
+.fy-task-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f1f23;
+}
+
+.fy-task-project {
+  font-size: 11.5px;
+  color: #8c8f96;
+}
+
+.fy-task-status {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #444;
+}
