@@ -7,6 +7,7 @@ import Footer from './components/Footer/Footer'
 import LandingPage from './pages/Landing/LandingPage'
 import Dashboard from './pages/Dashboard/Dashboard'
 import DashboardHeader from './components/DashboardHeader/DashboardHeader'
+import VerticalNavbar from './components/VerticalNavbar/VerticalNavbar'
 
 import { Routes, Route, useLocation } from "react-router-dom";
 
@@ -19,7 +20,15 @@ function App() {
   return (
     <>
       {/* Navbar zavisi od rute */}
-      {!isDashboardRoute ? <Navbar /> : <DashboardHeader/>}
+      {!isDashboardRoute ? (
+        <Navbar />
+      ) : (
+        <>
+          <DashboardHeader />
+          <VerticalNavbar />
+        </>
+      )}
+
       
 
       <main>

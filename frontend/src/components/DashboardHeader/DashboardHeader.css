@@ -3,6 +3,7 @@
     height: 3rem;
     border-bottom: 1px solid #d4d5d7;
     font-family: "Inter", sans-serif; 
+    position: fixed;
 }
 
 .dashboard-h-frame{
@@ -16,6 +17,7 @@
     color: rgb(62, 62, 62);  font-size: 1.1rem;
     display: flex; align-items: center; gap: 1rem;
     font-weight: 100;
+    border-right: 1px solid #d4d5d7;
 }
 
 .dashboard-h-logo img{
@@ -69,7 +71,7 @@
 }
 .dashboard-h-profile{
     width: 15%; height: 100%;
-    color: rgb(62, 62, 62); 
+    color: #6b6f76;
     display: flex; align-items: center; justify-content: end; gap: 1.3rem;
     font-size: 1.1rem;
 }
