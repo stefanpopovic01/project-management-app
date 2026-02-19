@@ -9,6 +9,7 @@
   top: 3rem;
   height: calc(100vh - 3rem);
   padding-top: 1rem;
+  z-index: 2000;
 }
 
 .dh-sidebar-inner {

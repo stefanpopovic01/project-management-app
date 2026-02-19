@@ -2,6 +2,7 @@ import { React, useState} from 'react';
 import './DashboardHeader.css'
 
 import logo from '../../assets/logo.png'
+import CreateProjectModal from '../CreateProjectModal/CreateProjectModal';
 
 function DashboardHeader() {
 
@@ -21,15 +22,22 @@ const handleSearchChange = (e) => {
   }
 };
 
+const [createProject, setCreateProject] = useState(false);
+
+const onClose = () => {
+  setCreateProject(!createProject);
+}
+
   return (
     <div className="dashboard-h-container">
+                 {createProject && (<CreateProjectModal onClose={onClose}/>)}
         <div className='dashboard-h-frame'>
             <div className='dashboard-h-logo'>
                 <img src={logo} alt='logo'/>
             </div>
             <div className='dashboard-h-search'>
                 <input type='text' placeholder='Search' onChange={handleSearchChange}></input>
-                <button><i class="fa-solid fa-plus"></i> Create</button>
+                <button onClick={onClose}><i class="fa-solid fa-plus"></i> Create</button>
                 <i class="fa-brands fa-sistrix"></i>
 
             {activeDropdown === "search" && (

@@ -2,10 +2,19 @@ import "./VerticalNavbar.css";
 import { useState } from "react";
 
 import SidebarNotifications from "../SidebarNotifications/SidebarNotifications";
+import CreateProjectModal from "../CreateProjectModal/CreateProjectModal";
 
 const VerticalNavbar = () => {
 
 const [notificationMenu, setNotificationMenu] = useState(false);
+
+const [createProject, setCreateProject] = useState(false);
+
+const onClose = () => {
+  setCreateProject(!createProject);
+}
+
+
   return (
     <nav className="dh-sidebar">
       <div className="dh-sidebar-inner">
@@ -48,12 +57,14 @@ const [notificationMenu, setNotificationMenu] = useState(false);
 
         <div className="dh-sidebar-divider"></div>
 
-        <div className="dh-sidebar-create">
+        <div className="dh-sidebar-create" onClick={() => setCreateProject(!createProject)}>
           <a href="#" className="dh-sidebar-create-btn">
             <i className="fa-solid fa-plus"></i>
             <span>Create Project</span>
           </a>
         </div>
+
+         {createProject && (<CreateProjectModal onClose={onClose}/>)}
 
         <div className="dh-sidebar-recent">
           <p className="dh-sidebar-section-title">Recent Project</p>
