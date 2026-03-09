@@ -8,6 +8,7 @@ import LandingPage from './pages/Landing/LandingPage'
 import Dashboard from './pages/Dashboard/Dashboard'
 import DashboardHeader from './components/DashboardHeader/DashboardHeader'
 import VerticalNavbar from './components/VerticalNavbar/VerticalNavbar'
+import DashboardProfile from './pages/DashboardProfile/DashboardProfile'
 
 import { Routes, Route, useLocation } from "react-router-dom";
 
@@ -37,6 +38,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path='/dashboard' element={<Dashboard />} />
+          <Route path='/dashboard-settings' element={<DashboardProfile />} />
         </Routes>
       </main>
 

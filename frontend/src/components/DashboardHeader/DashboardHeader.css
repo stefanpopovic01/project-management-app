@@ -5,6 +5,7 @@
     font-family: "Inter", sans-serif; 
     position: fixed;
     z-index: 100;
+    background-color: white;
 }
 
 .dashboard-h-frame{
