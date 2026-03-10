@@ -1,23 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import "./DashboardProfile.css";
+import EditProfileDrawer from "../../components/EditProfile/EditProfileDrawer"
 
-const profile = {
-  firstName: "Alex",
-  lastName: "Morrison",
-  initials: "AM",
-  position: "Senior Product Designer",
-  company: "Figma Inc.",
-  location: "San Francisco, CA",
-  email: "alex.morrison@figma.com",
-  joined: "Joined Jan 2021",
+
+const initialProfile = {
+  firstName:   "Alex",
+  lastName:    "Morrison",
+  initials:    "AM",
+  position:    "Senior Product Designer",
+  company:     "Figma Inc.",
+  location:    "San Francisco, CA",
+  email:       "alex.morrison@figma.com",
+  joined:      "Joined Jan 2021",
   description:
     "Designing digital products that feel human. Passionate about building scalable design systems, improving user flows, and collaborating closely with engineering. Previously at Stripe and Notion.",
-  skills: ["UI/UX Design", "Figma", "React", "Design Systems", "Prototyping", "User Research"],
+  skills:    ["UI/UX Design", "Figma", "React", "Design Systems", "Prototyping", "User Research"],
+  avatarSrc: null,
   stats: {
-    projects: 24,
+    projects:      24,
     contributions: 61,
-    followers: 318,
-    following: 74,
+    followers:     318,
+    following:     74,
   },
 };
 
@@ -151,7 +154,6 @@ function ProjectCard({ project, showRole = false }) {
         </div>
         {showRole && <span className="dp-role-badge">{project.role}</span>}
       </div>
-
       <div className="dp-project-bottom">
         <div className="dp-project-tags">
           {project.tags.map((t) => (
@@ -171,117 +173,151 @@ function ProjectCard({ project, showRole = false }) {
 }
 
 export default function DashboardProfile() {
+  const [profile, setProfile] = useState(initialProfile);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  /* Merge saved changes back into profile state */
+  const handleSave = (updated) => {
+    setProfile((prev) => ({
+      ...prev,
+      ...updated,
+      // Recompute initials from updated name
+      initials: `${updated.firstName?.[0] ?? ""}${updated.lastName?.[0] ?? ""}`.toUpperCase(),
+    }));
+  };
+
   return (
-    <div className="dp-page">
+    <>
+      <div className="dp-page">
 
-      <div className="dp-banner-wrap">
-        <div className="dp-banner">
-          <div className="dp-banner-dots" />
-          <button className="dp-banner-edit-btn">
-            {Icon.pencil}
-            Edit banner
-          </button>
+        {/* ── Banner ── */}
+        <div className="dp-banner-wrap">
+          <div className="dp-banner">
+            <div className="dp-banner-dots" />
+            <button className="dp-banner-edit-btn">
+              {Icon.pencil}
+              Edit banner
+            </button>
+          </div>
+        </div>
+
+        {/* ── Profile card ── */}
+        <div className="dp-container">
+          <div className="dp-profile-card">
+
+            <div className="dp-profile-header">
+              <div className="dp-avatar-wrap">
+                <div className="dp-avatar">
+                  {profile.avatarSrc
+                    ? <img src={profile.avatarSrc} alt={`${profile.firstName} ${profile.lastName}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                    : profile.initials}
+                </div>
+                <div className="dp-avatar-badge" />
+              </div>
+
+              <div className="dp-profile-actions">
+                <button className="dp-btn ghost">{Icon.share} Share</button>
+                <button
+                  className="dp-btn outline"
+                  onClick={() => setDrawerOpen(true)}
+                >
+                  {Icon.pencil} Edit Profile
+                </button>
+                <button className="dp-btn primary">{Icon.plus} Follow</button>
+              </div>
+            </div>
+
+            <div className="dp-profile-info">
+              <h1 className="dp-name">
+                {profile.firstName} {profile.lastName}
+              </h1>
+
+              <div className="dp-position-row">
+                <span className="dp-position">{profile.position}</span>
+                <span className="dp-divider-dot" />
+                <span className="dp-company">{profile.company}</span>
+              </div>
+
+              <div className="dp-meta-row">
+                <span className="dp-meta-item">{Icon.location}{profile.location}</span>
+                <span className="dp-meta-item">{Icon.mail}{profile.email}</span>
+                <span className="dp-meta-item">{Icon.clock}{profile.joined}</span>
+              </div>
+
+              <p className="dp-description">{profile.description}</p>
+
+              <div className="dp-skills-row">
+                {profile.skills.map((s) => (
+                  <span key={s} className="dp-skill-tag">{s}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="dp-stats-strip">
+              <div className="dp-stat">
+                <div className="dp-stat-value">{profile.stats.projects}</div>
+                <div className="dp-stat-label">Projects</div>
+              </div>
+              <div className="dp-stat">
+                <div className="dp-stat-value">{profile.stats.contributions}</div>
+                <div className="dp-stat-label">Contributions</div>
+              </div>
+              <div className="dp-stat">
+                <div className="dp-stat-value">{profile.stats.followers}</div>
+                <div className="dp-stat-label">Followers</div>
+              </div>
+              <div className="dp-stat">
+                <div className="dp-stat-value">{profile.stats.following}</div>
+                <div className="dp-stat-label">Following</div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Content grid ── */}
+          <div className="dp-content">
+            <div className="dp-section">
+              <div className="dp-section-header">
+                <span className="dp-section-title">
+                  <span className="dp-section-title-dot" />
+                  Created Projects
+                </span>
+                <span className="dp-section-count">{createdProjects.length}</span>
+              </div>
+              <div className="dp-projects-list">
+                {createdProjects.length > 0
+                  ? createdProjects.map((p) => <ProjectCard key={p.id} project={p} />)
+                  : <div className="dp-empty">No projects created yet.</div>}
+              </div>
+            </div>
+
+            <div className="dp-section">
+              <div className="dp-section-header">
+                <span className="dp-section-title">
+                  <span className="dp-section-title-dot" />
+                  Collaborated On
+                </span>
+                <span className="dp-section-count">{collaboratedProjects.length}</span>
+              </div>
+              <div className="dp-projects-list">
+                {collaboratedProjects.length > 0
+                  ? collaboratedProjects.map((p) => (
+                      <ProjectCard key={p.id} project={p} showRole />
+                    ))
+                  : <div className="dp-empty">No collaborations yet.</div>}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="dp-container">
-        <div className="dp-profile-card">
-
-          <div className="dp-profile-header">
-            <div className="dp-avatar-wrap">
-              <div className="dp-avatar">{profile.initials}</div>
-              <div className="dp-avatar-badge" />
-            </div>
-
-            <div className="dp-profile-actions">
-              <button className="dp-btn ghost">{Icon.share} Share</button>
-              <button className="dp-btn outline">{Icon.pencil} Edit Profile</button>
-              <button className="dp-btn primary">{Icon.plus} Follow</button>
-            </div>
-          </div>
-
-          <div className="dp-profile-info">
-            <h1 className="dp-name">
-              {profile.firstName} {profile.lastName}
-            </h1>
-
-            <div className="dp-position-row">
-              <span className="dp-position">{profile.position}</span>
-              <span className="dp-divider-dot" />
-              <span className="dp-company">{profile.company}</span>
-            </div>
-
-            <div className="dp-meta-row">
-              <span className="dp-meta-item">{Icon.location}{profile.location}</span>
-              <span className="dp-meta-item">{Icon.mail}{profile.email}</span>
-              <span className="dp-meta-item">{Icon.clock}{profile.joined}</span>
-            </div>
-
-            <p className="dp-description">{profile.description}</p>
-
-            <div className="dp-skills-row">
-              {profile.skills.map((s) => (
-                <span key={s} className="dp-skill-tag">{s}</span>
-              ))}
-            </div>
-          </div>
-
-          <div className="dp-stats-strip">
-            <div className="dp-stat">
-              <div className="dp-stat-value">{profile.stats.projects}</div>
-              <div className="dp-stat-label">Projects</div>
-            </div>
-            <div className="dp-stat">
-              <div className="dp-stat-value">{profile.stats.contributions}</div>
-              <div className="dp-stat-label">Contributions</div>
-            </div>
-            <div className="dp-stat">
-              <div className="dp-stat-value">{profile.stats.followers}</div>
-              <div className="dp-stat-label">Followers</div>
-            </div>
-            <div className="dp-stat">
-              <div className="dp-stat-value">{profile.stats.following}</div>
-              <div className="dp-stat-label">Following</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="dp-content">
-
-          <div className="dp-section">
-            <div className="dp-section-header">
-              <span className="dp-section-title">
-                <span className="dp-section-title-dot" />
-                Created Projects
-              </span>
-              <span className="dp-section-count">{createdProjects.length}</span>
-            </div>
-            <div className="dp-projects-list">
-              {createdProjects.length > 0
-                ? createdProjects.map((p) => <ProjectCard key={p.id} project={p} />)
-                : <div className="dp-empty">No projects created yet.</div>}
-            </div>
-          </div>
-
-          <div className="dp-section">
-            <div className="dp-section-header">
-              <span className="dp-section-title">
-                <span className="dp-section-title-dot" />
-                Collaborated On
-              </span>
-              <span className="dp-section-count">{collaboratedProjects.length}</span>
-            </div>
-            <div className="dp-projects-list">
-              {collaboratedProjects.length > 0
-                ? collaboratedProjects.map((p) => (
-                    <ProjectCard key={p.id} project={p} showRole />
-                  ))
-                : <div className="dp-empty">No collaborations yet.</div>}
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
+      {/*  Edit Profile Drawer */}
+      <EditProfileDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        profile={profile}
+        onSave={handleSave}
+      />
+    </>
   );
 }
