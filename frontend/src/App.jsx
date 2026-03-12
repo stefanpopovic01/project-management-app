@@ -9,6 +9,8 @@ import Dashboard from './pages/Dashboard/Dashboard'
 import DashboardHeader from './components/DashboardHeader/DashboardHeader'
 import VerticalNavbar from './components/VerticalNavbar/VerticalNavbar'
 import DashboardProfile from './pages/DashboardProfile/DashboardProfile'
+import DashboardProjects from './pages/DashboardProjects/DashboardProjects'
+import DashboardSingleProject from './components/DashboardSingleProject/DashboardSingleProject'
 
 import { Routes, Route, useLocation } from "react-router-dom";
 
@@ -39,6 +41,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path='/dashboard' element={<Dashboard />} />
           <Route path='/dashboard-settings' element={<DashboardProfile />} />
+          <Route path='/dashboard-projects' element={<DashboardProjects />} />
+          <Route path="/dashboard-projects/:id" element={<DashboardSingleProject />} />
         </Routes>
       </main>
 
