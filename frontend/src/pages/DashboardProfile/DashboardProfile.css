@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --top-nav-h:   3rem;       /* horizontal top navbar height  */
-  --side-nav-w:  13.65rem;   /* vertical sidebar width        */
+  --top-nav-h: 3rem;
+  --side-nav-w: 13.65rem;
 
   --blue:      rgb(24, 104, 219);
   --blue-light: rgba(24, 104, 219, 0.08);

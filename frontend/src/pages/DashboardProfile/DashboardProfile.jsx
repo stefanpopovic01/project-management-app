@@ -30,7 +30,7 @@ const createdProjects = [
     title: "Design System v3",
     description:
       "A comprehensive component library built in Figma with React integration, covering tokens, patterns, and documentation.",
-    tags: ["Figma", "React", "Documentation"],
+    // tags: ["Figma", "React", "Documentation"],
     status: "active",
     statusLabel: "Active",
     date: "Updated 2d ago",
@@ -40,7 +40,7 @@ const createdProjects = [
     title: "Onboarding Flow Redesign",
     description:
       "End-to-end redesign of the user onboarding experience, reducing drop-off by 34% in A/B tests.",
-    tags: ["UX Research", "Prototyping"],
+    // tags: ["UX Research", "Prototyping"],
     status: "review",
     statusLabel: "In Review",
     date: "Updated 5d ago",
@@ -50,7 +50,7 @@ const createdProjects = [
     title: "Analytics Dashboard",
     description:
       "Real-time analytics dashboard for internal teams, featuring customisable widgets and data export.",
-    tags: ["Dashboard", "Data Viz"],
+    // tags: ["Dashboard", "Data Viz"],
     status: "planning",
     statusLabel: "Planning",
     date: "Updated 2w ago",
@@ -60,7 +60,7 @@ const createdProjects = [
     title: "Mobile App Audit",
     description:
       "Accessibility and performance audit across iOS and Android surfaces with a prioritised fix backlog.",
-    tags: ["Mobile", "Accessibility"],
+    // tags: ["Mobile", "Accessibility"],
     status: "archived",
     statusLabel: "Archived",
     date: "Updated 3mo ago",
@@ -73,7 +73,7 @@ const collaboratedProjects = [
     title: "Checkout Optimisation",
     description:
       "Collaborated on reducing checkout friction, shipping 6 incremental improvements over Q3.",
-    tags: ["E-commerce", "A/B Testing"],
+    // tags: ["E-commerce", "A/B Testing"],
     status: "active",
     statusLabel: "Active",
     date: "Updated 1d ago",
@@ -84,7 +84,7 @@ const collaboratedProjects = [
     title: "Brand Refresh 2024",
     description:
       "Supported the brand team on iconography, illustration style, and motion guidelines.",
-    tags: ["Branding", "Motion"],
+    // tags: ["Branding", "Motion"],
     status: "archived",
     statusLabel: "Archived",
     date: "Updated 6mo ago",
@@ -95,7 +95,7 @@ const collaboratedProjects = [
     title: "API Developer Portal",
     description:
       "UX lead for the developer-facing documentation portal — IA, navigation, and code sample formatting.",
-    tags: ["Developer UX", "Docs"],
+    // tags: ["Developer UX", "Docs"],
     status: "review",
     statusLabel: "In Review",
     date: "Updated 3d ago",
@@ -156,9 +156,9 @@ function ProjectCard({ project, showRole = false }) {
       </div>
       <div className="dp-project-bottom">
         <div className="dp-project-tags">
-          {project.tags.map((t) => (
+          {/* {project.tags.map((t) => (
             <span key={t} className="dp-tag">{t}</span>
-          ))}
+          ))} */}
         </div>
         <div className="dp-project-meta">
           <span className="dp-project-status">
@@ -176,12 +176,10 @@ export default function DashboardProfile() {
   const [profile, setProfile] = useState(initialProfile);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  /* Merge saved changes back into profile state */
   const handleSave = (updated) => {
     setProfile((prev) => ({
       ...prev,
       ...updated,
-      // Recompute initials from updated name
       initials: `${updated.firstName?.[0] ?? ""}${updated.lastName?.[0] ?? ""}`.toUpperCase(),
     }));
   };
@@ -201,7 +199,7 @@ export default function DashboardProfile() {
           </div>
         </div>
 
-        {/* ── Profile card ── */}
+        {/* Profile card */}
         <div className="dp-container">
           <div className="dp-profile-card">
 
@@ -274,7 +272,7 @@ export default function DashboardProfile() {
             </div>
           </div>
 
-          {/* ── Content grid ── */}
+          {/*  Content grid  */}
           <div className="dp-content">
             <div className="dp-section">
               <div className="dp-section-header">

@@ -143,12 +143,10 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
 
   const handleSave = async () => {
     setSaving(true);
-    // Simulate async save (replace with your real API call)
     await new Promise((r) => setTimeout(r, 900));
     onSave?.({ ...form });
     setSaving(false);
     setIsDirty(false);
-    // Show toast then close
     setShowToast(true);
     toastTimer.current = setTimeout(() => {
       setShowToast(false);
@@ -161,14 +159,14 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
 
   return createPortal(
     <>
-      {/* ── Backdrop ── */}
+      {/*  Backdrop */}
       <div
         className={`epd-overlay${isOpen ? " open" : ""}`}
         onClick={handleClose}
         aria-hidden="true"
       />
 
-      {/* ── Drawer ── */}
+      {/*  Drawer */}
       <aside
         className={`epd-drawer${isOpen ? " open" : ""}`}
         role="dialog"
@@ -191,7 +189,7 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
         {/* Body */}
         <div className="epd-body">
 
-          {/* ── Avatar ── */}
+          {/*  Avatar  */}
           <div className="epd-section">
             <span className="epd-section-label">Profile Photo</span>
             <div className="epd-avatar-row">
@@ -236,7 +234,7 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
             </div>
           </div>
 
-          {/* ── Name & Position ── */}
+          {/*  Name & Position  */}
           <div className="epd-section">
             <span className="epd-section-label">Basic Info</span>
 
@@ -322,7 +320,7 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
             </div>
           </div>
 
-          {/* ── Bio ── */}
+          {/*  Bio  */}
           <div className="epd-section">
             <span className="epd-section-label">Bio</span>
 
@@ -343,7 +341,7 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
             </div>
           </div>
 
-          {/* ── Skills ── */}
+          {/*  Skills  */}
           <div className="epd-section">
             <span className="epd-section-label">Skills</span>
 
@@ -421,7 +419,7 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
         </div>
       </aside>
 
-      {/* ── Success toast ── */}
+      {/* Success toast */}
       <div className={`epd-toast${showToast ? " show" : ""}`} role="status">
         <span className="epd-toast-icon">{Icon.check}</span>
         Profile updated successfully
