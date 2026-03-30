@@ -2,9 +2,6 @@ import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "./DashboardProjects.css";
 
-/* ─────────────────────────────────────────────────────
-   ICONS
-───────────────────────────────────────────────────── */
 const Icon = {
   plus: (
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7">
@@ -35,9 +32,7 @@ const Icon = {
   ),
 };
 
-/* ─────────────────────────────────────────────────────
-   MOCK DATA
-───────────────────────────────────────────────────── */
+
 export const ALL_PROJECTS = [
   {
     id: 1, ownership: "owned",
@@ -124,9 +119,6 @@ export const ALL_PROJECTS = [
 const FILTERS   = ["All", "Active", "Review", "Planning", "Archived"];
 const PAGE_SIZE = 6;
 
-/* ─────────────────────────────────────────────────────
-   HELPERS
-───────────────────────────────────────────────────── */
 function formatDeadline(iso) {
   const d    = new Date(iso);
   const now  = new Date();
@@ -139,9 +131,7 @@ function pct(done, total) {
   return total === 0 ? 0 : Math.round((done / total) * 100);
 }
 
-/* ─────────────────────────────────────────────────────
-   AVATAR STACK
-───────────────────────────────────────────────────── */
+
 function AvatarStack({ members, max = 4 }) {
   const visible = members.slice(0, max);
   const extra   = members.length - max;
@@ -155,9 +145,6 @@ function AvatarStack({ members, max = 4 }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────
-   PROJECT CARD
-───────────────────────────────────────────────────── */
 function ProjectCard({ project, onClick }) {
   const progress = pct(project.tasksDone, project.tasksTotal);
   const { label: deadlineLabel, overdue } = formatDeadline(project.deadline);
@@ -205,9 +192,6 @@ function ProjectCard({ project, onClick }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────
-   PAGINATION
-───────────────────────────────────────────────────── */
 function Pagination({ currentPage, totalPages, onPageChange }) {
   if (totalPages <= 1) return null;
 
@@ -258,9 +242,6 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────
-   MAIN COMPONENT
-───────────────────────────────────────────────────── */
 export default function DashboardProjects() {
   const navigate = useNavigate();
 
@@ -293,7 +274,7 @@ export default function DashboardProjects() {
     <div className="dproj-page">
       <div className="dproj-inner">
 
-        {/* ── Page header ── */}
+        {/*  Page header */}
         <div className="dproj-page-header">
           <div>
             <h1 className="dproj-page-title">Projects</h1>
@@ -302,12 +283,12 @@ export default function DashboardProjects() {
             </p>
           </div>
           <div className="dproj-header-actions">
-            <button className="dproj-btn ghost">{Icon.export} Export</button>
+            {/* <button className="dproj-btn ghost">{Icon.export} Export</button> */}
             <button className="dproj-btn primary">{Icon.plus} New Project</button>
           </div>
         </div>
 
-        {/* ── Toolbar ── */}
+        {/*  Toolbar  */}
         <div className="dproj-toolbar">
           <div className="dproj-search-wrap">
             <svg className="dproj-search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7">
@@ -335,7 +316,7 @@ export default function DashboardProjects() {
           </div>
         </div>
 
-        {/* ── My Projects ── */}
+        {/*  My Projects  */}
         <div className="dproj-section-head">
           <span className="dproj-section-title">My Projects</span>
           <span className="dproj-section-badge">{owned.length}</span>
@@ -352,7 +333,7 @@ export default function DashboardProjects() {
         </div>
         <Pagination currentPage={ownedPage} totalPages={totalPages(owned)} onPageChange={setOwnedPage} />
 
-        {/* ── Assigned to Me ── */}
+        {/*  Assigned to Me  */}
         <div className="dproj-section-head" style={{ marginTop: "2.5rem" }}>
           <span className="dproj-section-title">Assigned to Me</span>
           <span className="dproj-section-badge" style={{ background: "rgba(167,139,250,0.12)", color: "#7c3aed" }}>

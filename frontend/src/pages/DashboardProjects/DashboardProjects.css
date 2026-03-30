@@ -1,9 +1,5 @@
-/* DashboardProjects.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ══════════════════════════════════════════════════════
-   PAGE SHELL
-══════════════════════════════════════════════════════ */
 .dproj-page {
   font-family: 'Inter', sans-serif;
   background: #f9fafb;
@@ -21,7 +17,6 @@
   padding: 2rem 0 4rem;
 }
 
-/* ── Page header ─────────────────────────────────────── */
 .dproj-page-header {
   display: flex;
   align-items: flex-end;
@@ -52,7 +47,6 @@
   flex-wrap: wrap;
 }
 
-/* ── Buttons ─────────────────────────────────────────── */
 .dproj-btn {
   font-family: 'Inter', sans-serif;
   font-size: 0.875rem;
@@ -85,7 +79,6 @@
 }
 .dproj-btn.ghost:hover { background: #f9fafb; color: #374151; }
 
-/* ── Toolbar ─────────────────────────────────────────── */
 .dproj-toolbar {
   display: flex;
   align-items: center;
@@ -154,7 +147,6 @@
   border-color: rgb(24, 104, 219);
 }
 
-/* ── Section header ──────────────────────────────────── */
 .dproj-section-head {
   display: flex;
   align-items: center;
@@ -185,7 +177,6 @@
   background: #e5e7eb;
 }
 
-/* ── Project grid ────────────────────────────────────── */
 .dproj-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
@@ -193,7 +184,6 @@
   margin-bottom: 2.5rem;
 }
 
-/* ── Project card ────────────────────────────────────── */
 .dproj-card {
   background: #ffffff;
   border: 0.0625rem solid #e5e7eb;
@@ -274,7 +264,6 @@
   overflow: hidden;
 }
 
-/* ── Progress bar ────────────────────────────────────── */
 .dproj-progress-wrap { margin-bottom: 1rem; }
 
 .dproj-progress-top {
@@ -300,7 +289,6 @@
 }
 .dproj-progress-fill.done { background: #22c55e; }
 
-/* ── Card meta ───────────────────────────────────────── */
 .dproj-card-meta {
   display: flex;
   align-items: center;
@@ -347,7 +335,6 @@
 .dproj-deadline svg { width: 0.8125rem; height: 0.8125rem; flex-shrink: 0; }
 .dproj-deadline.overdue { color: #dc2626; }
 
-/* ── Avatar stack ────────────────────────────────────── */
 .dproj-avatars { display: flex; align-items: center; }
 
 .dproj-avatar {
@@ -370,7 +357,6 @@
 .dproj-avatar:first-child { margin-left: 0; }
 .dproj-avatar.extra { background: #f3f4f6; color: #6b7280; font-size: 0.5625rem; }
 
-/* ── Owner row ───────────────────────────────────────── */
 .dproj-owner-row {
   display: flex;
   align-items: center;
@@ -398,7 +384,6 @@
 
 .dproj-owner-name { font-weight: 500; color: #374151; }
 
-/* ── Empty ───────────────────────────────────────────── */
 .dproj-empty {
   grid-column: 1 / -1;
   padding: 3rem 1rem;
@@ -408,7 +393,6 @@
 }
 .dproj-empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
 
-/* ── Pagination ──────────────────────────────────────── */
 .dproj-pagination {
   display: flex;
   align-items: center;
@@ -445,9 +429,6 @@
 
 .dproj-page-ellipsis { font-size: 0.875rem; color: #9ca3af; padding: 0 0.25rem; }
 
-/* ══════════════════════════════════════════════════════
-   RESPONSIVE
-══════════════════════════════════════════════════════ */
 @media (max-width: 64rem) { .dproj-page { margin-left: 0; } }
 
 @media (max-width: 48rem) {
