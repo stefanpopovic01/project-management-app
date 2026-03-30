@@ -3,9 +3,6 @@ import { useNavigate } from "react-router-dom";
 import "./ForYou.css";
 import { ALL_PROJECTS } from '../DashboardProjects/DashboardProjects';
 
-/* ─────────────────────────────────────────────────────
-   ICONS
-───────────────────────────────────────────────────── */
 const Icon = {
   chevRight: (<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="7 5 13 10 7 15" /></svg>),
   folder:    (<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M2 6a2 2 0 012-2h4l2 2h6a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" /></svg>),
@@ -16,12 +13,8 @@ const Icon = {
   lightning: (<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6"><polyline points="13 2 7 11 10 11 7 18 13 9 10 9 13 2" /></svg>),
 };
 
-/* ─────────────────────────────────────────────────────
-   MOCK DATA
-───────────────────────────────────────────────────── */
 const CURRENT_USER = "Alex Morrison";
 
-/* Active tasks drawn from mock — in a real app these come from your API */
 const MY_TASKS = [
   { id: "t4", title: "Button component — all variants", project: "Design System v3",   projectId: 1, priority: "high",   due: "2026-03-14" },
   { id: "t1", title: "Token audit — spacing & sizing",  project: "Design System v3",   projectId: 1, priority: "high",   due: "2026-03-18" },
@@ -39,9 +32,6 @@ const ACTIVITY = [
   { id: 6, initials: "SK", color: "purple", text: <><strong>Sara Kim</strong> invited <strong>Jamie Liu</strong> to the project</>,         time: "Yesterday" },
 ];
 
-/* ─────────────────────────────────────────────────────
-   HELPERS
-───────────────────────────────────────────────────── */
 function getGreeting(name) {
   const hour = new Date().getHours();
   if (hour < 12) return { time: "morning",   emoji: "☀️",  message: `Ready to get things done today?` };
@@ -74,9 +64,6 @@ function pct(done, total) {
   return total === 0 ? 0 : Math.round((done / total) * 100);
 }
 
-/* ─────────────────────────────────────────────────────
-   SUB-COMPONENTS
-───────────────────────────────────────────────────── */
 function ProjectRow({ project, onClick }) {
   const progress = pct(project.tasksDone, project.tasksTotal);
   const isDone   = progress === 100;
@@ -130,29 +117,20 @@ function TaskRow({ task, onClick }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────
-   MAIN COMPONENT
-   Props:
-     currentUser {string} — logged-in user's display name
-     onNavigate  {function} — optional override; defaults to useNavigate
-───────────────────────────────────────────────────── */
 export default function ForYou({ currentUser = CURRENT_USER }) {
   const navigate  = useNavigate();
   const greeting  = getGreeting(currentUser);
   const dateLabel = formatDateDisplay();
   const firstName = currentUser.split(" ")[0];
 
-  /* Derive stats */
   const ownedProjects    = ALL_PROJECTS.filter(p => p.ownership === "owned");
   const assignedProjects = ALL_PROJECTS.filter(p => p.ownership === "assigned");
   const activeTaskCount  = MY_TASKS.length;
   const overdueCount     = MY_TASKS.filter(t => getDueChip(t.due).cls === "overdue").length;
 
-  /* Recent 3 from each group */
   const recentOwned    = ownedProjects.slice(0, 3);
   const recentAssigned = assignedProjects.slice(0, 3);
 
-  /* Tasks sorted by urgency */
   const sortedTasks = useMemo(() => {
     return [...MY_TASKS].sort((a, b) => new Date(a.due) - new Date(b.due));
   }, []);
@@ -169,7 +147,6 @@ export default function ForYou({ currentUser = CURRENT_USER }) {
     <div className="fy-page">
       <div className="fy-inner">
 
-        {/* ── Hero greeting ── */}
         <div className="fy-hero">
           <div className="fy-hero-inner">
             <div>
@@ -191,7 +168,6 @@ export default function ForYou({ currentUser = CURRENT_USER }) {
             </div>
           </div>
 
-          {/* Stats */}
           <div className="fy-stats">
             <div className="fy-stat">
               <span className="fy-stat-value">{ownedProjects.length}</span>
@@ -224,32 +200,26 @@ export default function ForYou({ currentUser = CURRENT_USER }) {
           </div>
         </div>
 
-        {/* ── 2-column body ── */}
         <div className="fy-body">
 
-          {/* ════ MAIN COLUMN ════ */}
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
 
-            {/* Recent projects */}
             <div className="fy-card">
               <div className="fy-card-head">
                 <span className="fy-card-title">
                   {Icon.folder} Recent Projects
                 </span>
-                <button className="fy-card-link" onClick={() => navigate("/projects")}>
+                <button className="fy-card-link" onClick={() => navigate("/dashboard-projects")}>
                   See all {Icon.chevRight}
                 </button>
               </div>
 
               <div className="fy-proj-list">
-                {/* Owned */}
                 <div className="fy-proj-section-label">My Projects</div>
                 {recentOwned.length > 0
                   ? recentOwned.map(p => <ProjectRow key={p.id} project={p} onClick={handleProjectClick} />)
                   : <div className="fy-empty"><span className="fy-empty-icon">📁</span>No projects yet.</div>
                 }
-
-                {/* Assigned */}
                 <div className="fy-proj-section-label" style={{ marginTop: "0.5rem" }}>Assigned to Me</div>
                 {recentAssigned.length > 0
                   ? recentAssigned.map(p => <ProjectRow key={p.id} project={p} onClick={handleProjectClick} />)
@@ -258,14 +228,13 @@ export default function ForYou({ currentUser = CURRENT_USER }) {
               </div>
             </div>
 
-            {/* Active tasks due soon */}
             <div className="fy-card">
               <div className="fy-card-head">
                 <span className="fy-card-title">
                   {Icon.clock} Active Tasks
                   <span className="fy-card-badge">{sortedTasks.length}</span>
                 </span>
-                <button className="fy-card-link" onClick={() => navigate("/projects")}>
+                <button className="fy-card-link" onClick={() => navigate("/dashboard-projects")}>
                   View projects {Icon.chevRight}
                 </button>
               </div>
@@ -285,10 +254,8 @@ export default function ForYou({ currentUser = CURRENT_USER }) {
 
           </div>
 
-          {/* ════ SIDEBAR ════ */}
           <div className="fy-sidebar">
 
-            {/* Recent activity */}
             <div className="fy-card">
               <div className="fy-card-head">
                 <span className="fy-card-title">
@@ -309,14 +276,13 @@ export default function ForYou({ currentUser = CURRENT_USER }) {
               </div>
             </div>
 
-            {/* Quick links */}
             <div className="fy-card">
               <div className="fy-card-head">
                 <span className="fy-card-title">Quick Links</span>
               </div>
 
               <div className="fy-quicklinks">
-                <button className="fy-quicklink-btn" onClick={() => navigate("/projects")}>
+                <button className="fy-quicklink-btn" onClick={() => navigate("/dashboard-projects")}>
                   <div className="fy-quicklink-icon blue">{Icon.folder}</div>
                   <div>
                     <div className="fy-quicklink-label">All Projects</div>
@@ -325,7 +291,7 @@ export default function ForYou({ currentUser = CURRENT_USER }) {
                   <span className="fy-quicklink-arrow">{Icon.chevRight}</span>
                 </button>
 
-                <button className="fy-quicklink-btn" onClick={() => navigate("/profile")}>
+                <button className="fy-quicklink-btn" onClick={() => navigate("/dashboard-settings")}>
                   <div className="fy-quicklink-icon purple">{Icon.userPlus}</div>
                   <div>
                     <div className="fy-quicklink-label">My Profile</div>

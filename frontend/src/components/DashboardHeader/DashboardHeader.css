@@ -438,3 +438,11 @@
   color: #666;
 }
 
+
+@media (max-width: 768px) {
+
+    .dashboard-h-container{
+      display: none;
+    }
+
+}
