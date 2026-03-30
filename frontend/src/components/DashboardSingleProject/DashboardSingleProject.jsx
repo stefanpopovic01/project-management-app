@@ -3,9 +3,6 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import "./DashboardSingleProject.css";
 import { ALL_PROJECTS } from "../../pages/DashboardProjects/DashboardProjects";
 
-/* ─────────────────────────────────────────────────────
-   ICONS
-───────────────────────────────────────────────────── */
 const Icon = {
   back: (<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="13 5 7 10 13 15" /></svg>),
   close: (<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8"><line x1="5" y1="5" x2="15" y2="15" /><line x1="15" y1="5" x2="5" y2="15" /></svg>),
@@ -24,9 +21,6 @@ const Icon = {
   task: (<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="3" width="14" height="14" rx="2" /><polyline points="7 10 9 12 13 8" /></svg>),
 };
 
-/* ─────────────────────────────────────────────────────
-   MOCK DATA
-───────────────────────────────────────────────────── */
 const CURRENT_USER = "Alex Morrison";
 
 const MOCK_TASKS = [
@@ -49,9 +43,6 @@ const COLUMNS = [
 
 const PRIORITIES = ["high", "medium", "low"];
 
-/* ─────────────────────────────────────────────────────
-   HELPERS
-───────────────────────────────────────────────────── */
 function fmtDate(iso) {
   if (!iso) return { label: "—", overdue: false };
   const d   = new Date(iso);
@@ -82,9 +73,6 @@ function useToast() {
   return { show, msg, fire };
 }
 
-/* ─────────────────────────────────────────────────────
-   TASK DETAIL DRAWER
-───────────────────────────────────────────────────── */
 function TaskDetailDrawer({ task, colLabel, isOpen, onClose, currentUser }) {
   const [comment,  setComment]  = useState("");
   const [checks,   setChecks]   = useState([]);
@@ -207,9 +195,6 @@ function TaskDetailDrawer({ task, colLabel, isOpen, onClose, currentUser }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────
-   ADD TASK DRAWER
-───────────────────────────────────────────────────── */
 function AddTaskDrawer({ isOpen, onClose, onAdd, defaultCol, members }) {
   const EMPTY = { title: "", description: "", priority: "medium", due: "", checklist: [] };
   const [form,       setForm]      = useState(EMPTY);
@@ -353,9 +338,6 @@ function AddTaskDrawer({ isOpen, onClose, onAdd, defaultCol, members }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────
-   INVITE DRAWER
-───────────────────────────────────────────────────── */
 function InviteDrawer({ isOpen, onClose, projectTitle, onInvite }) {
   const [emails,   setEmails]   = useState([]);
   const [input,    setInput]    = useState("");
@@ -467,9 +449,6 @@ function InviteDrawer({ isOpen, onClose, projectTitle, onInvite }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────
-   EDIT PROJECT DRAWER
-───────────────────────────────────────────────────── */
 function EditProjectDrawer({ isOpen, onClose, project, onSave }) {
   const [form,    setForm]    = useState({ title: "", description: "", deadline: "" });
   const [members, setMembers] = useState([]);
@@ -583,9 +562,6 @@ function EditProjectDrawer({ isOpen, onClose, project, onSave }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────
-   TASK CARD
-───────────────────────────────────────────────────── */
 function TaskCard({ task, isOwner, onDragStart, onDragEnd, onClick }) {
   const due        = fmtDate(task.due);
   const canDrag    = task.assignee.name === CURRENT_USER || isOwner;
@@ -617,9 +593,6 @@ function TaskCard({ task, isOwner, onDragStart, onDragEnd, onClick }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────
-   MAIN COMPONENT
-───────────────────────────────────────────────────── */
 export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
   const { id }    = useParams();
   const navigate  = useNavigate();
@@ -647,7 +620,7 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
 
   const isOwner = project.owner.name === currentUser;
 
-  /* ── Drag ── */
+  /* Drag  */
   const handleDragStart = useCallback((e, taskId) => {
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("taskId", taskId);
@@ -662,7 +635,7 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
     setDragOverCol(null);
   }, []);
 
-  /* ── Drawer openers ── */
+  /* Drawer openers  */
   const openTask = (task) => { setActiveTask(task); setTaskOpen(true); };
   const openAddTask = (col = "planned") => { setAddDefaultCol(col); setAddOpen(true); };
 
@@ -768,7 +741,7 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
         </div>
       </div>
 
-      {/* ── Task detail drawer ── */}
+      {/* Task detail drawer */}
       <TaskDetailDrawer
         task={activeTask}
         colLabel={activeTask ? COLUMNS.find(c => c.id === activeTask.col)?.label : ""}
@@ -777,7 +750,7 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
         currentUser={currentUser}
       />
 
-      {/* ── Add task drawer ── */}
+      {/* Add task drawer */}
       <AddTaskDrawer
         isOpen={addOpen}
         onClose={() => setAddOpen(false)}
@@ -789,7 +762,7 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
         }}
       />
 
-      {/* ── Invite drawer ── */}
+      {/* Invite drawer */}
       <InviteDrawer
         isOpen={inviteOpen}
         onClose={() => setInviteOpen(false)}
@@ -797,7 +770,7 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
         onInvite={(emails, role) => toast.fire(`Invited ${emails.length} person${emails.length !== 1 ? "s" : ""} as ${role}`)}
       />
 
-      {/* ── Edit project drawer ── */}
+      {/* Edit project drawer */}
       <EditProjectDrawer
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
@@ -808,7 +781,7 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
         }}
       />
 
-      {/* ── Toast ── */}
+      {/* Toast */}
       <div className={`dsp-toast${toast.show ? " show" : ""}`} role="status">
         <span className="dsp-toast-icon">{Icon.check}</span>
         {toast.msg}
