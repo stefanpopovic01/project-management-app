@@ -56,7 +56,15 @@ const userSchema = new mongoose.Schema({
     skills: {
         type: [String],
         default: []
-    }
+    },
+    followers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }],
+    following: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }]
 
 }, { timestamps: true } )
 
@@ -70,5 +78,8 @@ userSchema.pre("save", async function (next) {
     next();
 
 })
+
+// This prevents the "duplicate follow" issue from SQL indexes
+// followSchema.index({ follower: 1, following: 1 }, { unique: true });
 
 module.exports = mongoose.model("User", userSchema);
