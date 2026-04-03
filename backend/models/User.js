@@ -64,7 +64,11 @@ const userSchema = new mongoose.Schema({
     following: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
-    }]
+    }],
+    refreshToken: {
+        type: String, 
+        default: null
+    }
 
 }, { timestamps: true } )
 
@@ -78,6 +82,10 @@ userSchema.pre("save", async function (next) {
     next();
 
 })
+
+userSchema.methods.comparePassword = function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 // This prevents the "duplicate follow" issue from SQL indexes
 // followSchema.index({ follower: 1, following: 1 }, { unique: true });

@@ -5,6 +5,7 @@ const express = require("express");
 const app = express()
 
 const userRouter = require("./routes/user");
+const authRouter = require("./routes/auth");
 
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("Povezan sa bazom."))
@@ -17,6 +18,7 @@ app.get("/", (req, res) => {
 })
 
 app.use("/user", userRouter);
+app.use("/auth", authRouter);
 
 
 app.listen(3001);
