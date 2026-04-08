@@ -14,14 +14,13 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ["task_moved", "comment_added", "member_invited", "task_assigned"],
+        enum: ["task_moved", "comment_added", "member_invited", "task_assigned", "user_followed"],
         required: true
     },
     // Reference to the project where this happened
     project: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Project",
-        required: true 
     },
     task: {
         type: mongoose.Schema.Types.ObjectId,
