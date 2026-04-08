@@ -1,5 +1,6 @@
 const Project = require("../models/Project");
 const Task = require("../models/Task");
+const Notification = require("../models/Notification");
 
 async function getUserProjects(req, res) {
     try {
@@ -89,6 +90,97 @@ async function deleteProject(req, res) {
     }
 };
 
+async function invite(req, res) {
+  try {
+    const { projectId, userId, role = "member", expiresAt } = req.body;
+
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+
+    const alreadyInvited = project.members.find(
+      (m) => m.user.toString() === userId
+    );
+
+    if (alreadyInvited) {
+      // You could even customize this: if status is 'declined', allow re-invite
+      return res.status(400).json({ message: "User is already a member or has a pending invite" });
+    }
+
+    project.members.push({
+      user: userId,
+      invitedBy: req.user.id,
+      role: role,
+      status: "pending",
+      invitedAt: Date.now(),
+      expiresAt: expiresAt || null
+    });
+
+    await project.save();
+
+    await Notification.create({
+      recipient: userId,      // The person being invited
+      actor: req.user.id,     // The person doing the inviting
+      type: "member_invited", // A string matching your Notification Schema enum
+      project: projectId,     // Link to the project
+      message: `You have been invited to join the project: ${project.title}`
+    });
+
+    const activeMemberCount = project.members.filter(m => m.status === 'accepted').length;
+
+    res.status(200).json({ 
+      message: "User invited successfully", 
+      activeMemberCount: activeMemberCount
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+async function respondInvite(req, res) {
+  try {
+    const { projectId, action } = req.body; // action: 'accepted' or 'declined'
+    const userId = req.user.id;
+
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+
+    const memberEntry = project.members.find(
+      (m) => m.user.toString() === userId
+    );
+
+    if (!memberEntry) {
+      return res.status(403).json({ message: "You were not invited to this project" });
+    }
+
+    if (memberEntry.status !== 'pending') {
+      return res.status(400).json({ message: `Already ${memberEntry.status}` });
+    }
+
+    if (action === 'accepted') {
+      memberEntry.status = 'accepted';
+      memberEntry.acceptedAt = Date.now();
+    } else if (action === 'declined') {
+      memberEntry.status = 'declined';
+    } else {
+      return res.status(400).json({ message: "Invalid action. Use 'accepted' or 'declined'." });
+    }
+
+    await project.save();
+
+    res.status(200).json({ 
+      message: `Invitation ${action} successfully`, 
+      status: memberEntry.status 
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
 
 
-module.exports = { getUserProjects, createProject, getProject, updateProject, deleteProject };
+
+
+
+
+
+module.exports = { getUserProjects, createProject, getProject, updateProject, deleteProject, invite, respondInvite };
