@@ -5,6 +5,8 @@ const { auth } = require("../middleware/authMiddleware");
 
 router.get("/:id", auth, projectController.getProject);
 router.get("/user/:id", auth, projectController.getUserProjects);
+router.get("/assigned/:id", auth, projectController.getAssignedProjects);
+router.get("/:id/members", auth, projectController.getProjectMembers);
 router.post("/", auth, projectController.createProject);
 router.post("/invite", auth, projectController.invite);
 router.patch("/respond-invite", auth, projectController.respondInvite);

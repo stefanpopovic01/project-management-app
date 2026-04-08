@@ -177,10 +177,54 @@ async function respondInvite(req, res) {
   }
 }
 
+async function getAssignedProjects(req, res) {
+  try {
+    const projects = await Project.find({
+      members: {
+        $elemMatch: {
+          user: req.params.id,
+          status: "accepted"
+        }
+      }
+    })
+      .populate("creator", "firstName lastName email");
+
+    return res.status(200).json({
+      count: projects.length,
+      projects
+    });
+
+  } catch {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+async function getProjectMembers(req, res) {
+  try {
+
+    const project = await Project.findById(req.params.id)
+      .populate("members.user", "firstName lastName email avatarUrl");
+
+    if (!project)
+      return res.status(404).json({ message: "Project not found." });
+
+    const employees = project.members
+      .filter(emp => emp.status === "accepted")
+      .map(emp => emp.user);
+
+    return res.status(200).json({
+      count: employees.length,
+      employees
+    });
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
 
 
 
 
 
 
-module.exports = { getUserProjects, createProject, getProject, updateProject, deleteProject, invite, respondInvite };
+module.exports = { getUserProjects, createProject, getProject, updateProject, deleteProject, invite, respondInvite, getAssignedProjects, getProjectMembers };
