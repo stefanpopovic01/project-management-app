@@ -18,12 +18,31 @@ async function getUserProjects(req, res) {
     }
 
     const projects = await Project.find(query)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .populate("members.user", "avatarUrl")
+      .populate("creator", "firstName lastName");
+
+      const projectsWithStats = await Promise.all(
+      projects.map(async (project) => {
+        const totalTasks = await Task.countDocuments({ project: project._id });
+        const completedTasks = await Task.countDocuments({ 
+          project: project._id, 
+          status: "done" 
+        });
+
+        return {
+          ...project.toObject(),
+          totalTasks,
+          completedTasks
+        };
+      })
+    );
 
     return res.status(200).json({
-      count: projects.length,
-      projects
+      count: projectsWithStats.length,
+      projects: projectsWithStats
     });
+    
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -213,11 +232,28 @@ async function getAssignedProjects(req, res) {
 
     const projects = await Project.find(query)
       .sort({ createdAt: -1 })
-      .populate("creator", "firstName lastName email");
+      .populate("creator", "firstName lastName email")
+      .populate("members.user", "avatarUrl");
+
+    const projectsWithStats = await Promise.all(
+      projects.map(async (project) => {
+        const totalTasks = await Task.countDocuments({ project: project._id });
+        const completedTasks = await Task.countDocuments({ 
+          project: project._id, 
+          status: "done" 
+        });
+
+        return {
+          ...project.toObject(),
+          totalTasks,
+          completedTasks
+        };
+      })
+    );
 
     return res.status(200).json({
-      count: projects.length,
-      projects
+      count: projectsWithStats.length,
+      projects: projectsWithStats
     });
 
   } catch (err) {
