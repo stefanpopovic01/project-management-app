@@ -1,5 +1,6 @@
 const Task = require("../models/Task");
 const Project = require("../models/Project");
+const Notification = require("../models/Notification");
 
 async function getProjectTasks(req, res) {
   try {
@@ -54,25 +55,22 @@ async function getAllUserTasks(req, res) {
 }
 
 async function getTask(req, res) {
-    try {
+  try {
+    const task = await Task.findById(req.params.id)
+      .populate("assignedTo", "firstName lastName email")
+      .populate("project", "title description")
+      .populate({
+        path: "comments.author",
+        select: "firstName lastName avatarUrl"
+      });
 
-        const task = await Task.findById(req.params.id)
-            .populate("assignedTo", "firstName lastName email")
-            .populate("project", "title description");
+    if (!task) return res.status(404).json({ message: "Task not found." });
 
-        if (!task)
-            return res.status(404).json({ message: "Task not found." });
-
-        // if (task.assignedTo._id.toString() !== req.user.id) {
-        // return res.status(403).json({ message: "Not authorized to view this task." });
-        // }
-
-        res.status(200).json(task);
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
+    res.status(200).json(task);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
 
 async function createTask(req, res) {
   try {
@@ -122,19 +120,62 @@ async function createTask(req, res) {
 async function updateTask(req, res) {
   try {
     const task = await Task.findById(req.params.id);
-
     if (!task) return res.status(404).json({ message: "Task not found." });
 
-    // if (task.assignedTo.toString() !== req.user.id) {
-    //   return res.status(403).json({ message: "Not authorized to edit this task." });
-    // }
+    if (task.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Only the creator can edit task details." });
+    }
 
     Object.assign(task, req.body);
     await task.save();
 
-    res.status(200).json({
-      message: "Task updated.",
-      task
+    res.status(200).json({ message: "Task updated.", task });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+async function addComment(req, res) {
+  try {
+    const { body } = req.body;
+    const task = await Task.findById(req.params.id);
+
+    if (!task) return res.status(404).json({ message: "Task not found." });
+
+    const isCreator = task.createdBy.toString() === req.user.id;
+    const isAssignee = task.assignedTo?.toString() === req.user.id;
+
+    if (!isCreator && !isAssignee) {
+      return res.status(403).json({ message: "You are not authorized to comment." });
+    }
+
+    task.comments.push({
+      author: req.user.id,
+      body: body
+    });
+
+    await task.save();
+
+    let recipientId = null;
+    if (isCreator) {
+      recipientId = task.assignedTo;
+    } else {
+      recipientId = task.createdBy;
+    }
+
+    if (recipientId) {
+      await Notification.create({
+        recipient: recipientId,
+        actor: req.user.id,
+        type: "comment_added",
+        project: task.project,
+        message: `New comment on task: "${task.title}"`
+      });
+    }
+
+    res.status(201).json({ 
+      message: "Comment added and notification sent.", 
+      comments: task.comments 
     });
 
   } catch (err) {
@@ -160,5 +201,4 @@ async function deleteTask(req, res) {
   }
 }
 
-
-module.exports = { getProjectTasks, getTask, createTask, updateTask, deleteTask, getAllUserTasks };
+module.exports = { getProjectTasks, getTask, createTask, updateTask, deleteTask, getAllUserTasks, addComment };
