@@ -4,6 +4,7 @@ const taskController = require("../controllers/task");
 const { auth } = require("../middleware/authMiddleware");
 
 router.get("/:projectId/tasks", auth, taskController.getProjectTasks);
+router.get("/", auth, taskController.getAllUserTasks);
 router.get("/:id", auth, taskController.getTask);
 router.post("/", auth, taskController.createTask);
 router.patch("/:id", auth, taskController.updateTask);

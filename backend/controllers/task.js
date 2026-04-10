@@ -21,6 +21,38 @@ async function getProjectTasks(req, res) {
   }
 }
 
+async function getAllUserTasks(req, res) {
+  try {
+    const userId = req.user.id;
+    const now = new Date();
+
+    const tasks = await Task.find({ assignedTo: userId });
+
+    const totalCount = tasks.length;
+
+    const completedCount = tasks.filter(task => task.status === 'done').length;
+
+    const overdueCount = tasks.filter(task => {
+      return task.status !== 'done' && 
+             task.dueDate && 
+             new Date(task.dueDate) < now;
+    }).length;
+
+    return res.status(200).json({
+      tasks,
+      stats: {
+        total: totalCount,
+        completed: completedCount,
+        overdue: overdueCount,
+        pending: totalCount - completedCount
+      }
+    });
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
 async function getTask(req, res) {
     try {
 
@@ -129,4 +161,4 @@ async function deleteTask(req, res) {
 }
 
 
-module.exports = { getProjectTasks, getTask, createTask, updateTask, deleteTask };
+module.exports = { getProjectTasks, getTask, createTask, updateTask, deleteTask, getAllUserTasks };
