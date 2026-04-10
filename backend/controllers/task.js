@@ -145,6 +145,43 @@ async function updateTask(req, res) {
   }
 }
 
+async function updateTaskStatus(req, res) {
+  try {
+    const { status, position } = req.body;
+    const task = await Task.findById(req.params.id);
+
+    if (!task) return res.status(404).json({ message: "Task not found." });
+
+    const isCreator = task.createdBy.toString() === req.user.id;
+    const isAssignee = task.assignedTo?.toString() === req.user.id;
+
+    if (!isCreator && !isAssignee) {
+      return res.status(403).json({ message: "Not authorized to move this task." });
+    }
+
+    const oldStatus = task.status;
+
+    if (status) task.status = status;
+    if (position !== undefined) task.position = position;
+
+    await task.save();
+
+    if (isAssignee && status && status !== oldStatus) {
+      await Notification.create({
+        recipient: task.createdBy,
+        actor: req.user.id,
+        type: "task_moved",
+        project: task.project,
+        message: `Task "${task.title}" moved from ${oldStatus} to ${status}.`
+      });
+    }
+
+    res.status(200).json({ message: "Task updated.", task });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 async function addComment(req, res) {
   try {
     const { body } = req.body;
@@ -211,4 +248,4 @@ async function deleteTask(req, res) {
   }
 }
 
-module.exports = { getProjectTasks, getTask, createTask, updateTask, deleteTask, getAllUserTasks, addComment };
+module.exports = { getProjectTasks, getTask, createTask, updateTask, deleteTask, getAllUserTasks, addComment, updateTaskStatus };
