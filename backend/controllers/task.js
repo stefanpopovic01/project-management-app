@@ -103,6 +103,16 @@ async function createTask(req, res) {
 
     await task.save();
 
+    if (assignedTo && assignedTo !== req.user.id) {
+      await Notification.create({
+        recipient: assignedTo,
+        actor: req.user.id,
+        type: "task_assigned",
+        project: project,
+        message: `You have been assigned to a new task: "${title}"`
+      });
+    }
+
     res.status(201).json({
       message: "Task created successfully.",
       task
