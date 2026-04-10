@@ -3,9 +3,9 @@ const router = express.Router();
 const projectController = require("../controllers/project");
 const { auth } = require("../middleware/authMiddleware");
 
+router.get("/user/", auth, projectController.getUserProjects);
+router.get("/assigned/", auth, projectController.getAssignedProjects);
 router.get("/:id", auth, projectController.getProject);
-router.get("/user/:id", auth, projectController.getUserProjects);
-router.get("/assigned/:id", auth, projectController.getAssignedProjects);
 router.get("/:id/members", auth, projectController.getProjectMembers);
 router.post("/", auth, projectController.createProject);
 router.post("/invite", auth, projectController.invite);

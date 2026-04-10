@@ -10,7 +10,8 @@ async function getProjectTasks(req, res) {
     const tasks = await Task.find({
       assignedTo: userId,
       project: projectId
-    });
+    })
+    .sort({ position: 1 });
 
     return res.status(200).json({
       count: tasks.length,

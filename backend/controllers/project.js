@@ -3,18 +3,30 @@ const Task = require("../models/Task");
 const Notification = require("../models/Notification");
 
 async function getUserProjects(req, res) {
-    try {
+  try {
+    const { search, status } = req.query;
+    const userId = req.user.id;
 
-        const projects = await Project.find({ creator: req.user.id })
-         
-        return res.status(200).json({
-            count: projects.length,
-            projects
-        })
+    let query = { creator: userId };
 
-    } catch (err) {
-        return res.status(500).json({ error: err.message })
+    if (search) {
+      query.title = { $regex: search, $options: "i" };
     }
+
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    const projects = await Project.find(query)
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      count: projects.length,
+      projects
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 }
 
 async function createProject(req, res) {
@@ -179,14 +191,28 @@ async function respondInvite(req, res) {
 
 async function getAssignedProjects(req, res) {
   try {
-    const projects = await Project.find({
+    const { search, status } = req.query;
+    const userId = req.user.id;
+
+    let query = {
       members: {
         $elemMatch: {
-          user: req.params.id,
+          user: userId,
           status: "accepted"
         }
       }
-    })
+    };
+
+    if (search) {
+      query.title = { $regex: search, $options: "i" };
+    }
+
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    const projects = await Project.find(query)
+      .sort({ createdAt: -1 })
       .populate("creator", "firstName lastName email");
 
     return res.status(200).json({
@@ -194,7 +220,7 @@ async function getAssignedProjects(req, res) {
       projects
     });
 
-  } catch {
+  } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 }
