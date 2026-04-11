@@ -75,21 +75,6 @@ async function createProject(req, res) {
 async function getProject(req, res) {
     try {
         const project = await Project.findById(req.params.id)
-        .populate("creator", "firstName lastName email")
-        .populate("members", "firstName lastName email avatarUrl")
-
-        if (!project) return res.status(404).json({ message: "Project not found." })
-        
-        res.status(200).json(project);
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-}
-
-async function getProject(req, res) {
-    try {
-        const project = await Project.findById(req.params.id)
             .populate("creator", "firstName lastName email")
             .populate("members.user", "firstName lastName email avatarUrl");
 

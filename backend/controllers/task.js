@@ -58,7 +58,7 @@ async function getAllUserTasks(req, res) {
 async function getTask(req, res) {
   try {
     const task = await Task.findById(req.params.id)
-      .populate("assignedTo", "firstName lastName email")
+      .populate("assignedTo", "firstName lastName email avatarUrl")
       .populate("project", "title description")
       .populate({
         path: "comments.author",
@@ -68,6 +68,35 @@ async function getTask(req, res) {
     if (!task) return res.status(404).json({ message: "Task not found." });
 
     res.status(200).json(task);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+async function getTask(req, res) {
+  try {
+    const task = await Task.findById(req.params.id)
+      .populate("assignedTo", "firstName lastName email avatarUrl")
+      .populate("project", "title description")
+      .populate({
+        path: "comments.author",
+        select: "firstName lastName avatarUrl"
+      });
+
+    if (!task) return res.status(404).json({ message: "Task not found." });
+
+    // 1. Calculate checklist stats
+    // Assuming your checklist items have a 'completed' boolean field
+    const totalChecklistItems = task.checklist.length;
+    const completedChecklistItems = task.checklist.filter(item => item.isDone).length;
+
+    // 2. Return the task with the new stats
+    res.status(200).json({
+      ...task.toObject(),
+      totalChecklistItems,
+      completedChecklistItems
+    });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
