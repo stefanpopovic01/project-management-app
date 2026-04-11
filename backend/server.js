@@ -44,5 +44,21 @@ app.use("/project", projectRouter);
 app.use("/task", taskRouter);
 app.use("/notification", notificationRouter);
 
+app.use((err, req, res, next) => {
+    console.error(`[Error] ${err.name}: ${err.message}`);
+
+    if (err.name === 'ValidationError') {
+        return res.status(400).json({ 
+            status: "error",
+            error: err.message 
+        });
+    }
+    
+    res.status(500).json({ 
+        status: "error",
+        error: "Something went wrong on our end. Please try again later." 
+    });
+});
+
 app.listen(3001);
 
