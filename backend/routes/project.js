@@ -12,6 +12,7 @@ router.post("/invite", auth, projectController.invite);
 router.patch("/respond-invite", auth, projectController.respondInvite);
 router.patch("/:id", auth, projectController.updateProject);
 router.delete("/:id", auth, projectController.deleteProject);
+router.delete("/:projectId/members/:userId", auth, projectController.removeMember);
 
 
 module.exports = router;

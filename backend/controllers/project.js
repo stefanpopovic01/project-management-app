@@ -223,6 +223,39 @@ async function respondInvite(req, res) {
   }
 }
 
+async function removeMember(req, res) {
+  try {
+    const { projectId, userId } = req.params;
+
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+      return res.status(404).json({ message: "Project not found." });
+    }
+
+    if (project.creator.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Only the project creator can remove members." });
+    }
+
+    const memberIndex = project.members.findIndex(m => m.user.toString() === userId);
+    if (memberIndex === -1) {
+      return res.status(404).json({ message: "User is not a member of this project." });
+    }
+
+    project.members.splice(memberIndex, 1);
+    await project.save();
+
+    await Task.updateMany(
+      { project: projectId, assignedTo: userId },
+      { $set: { assignedTo: null } }
+    );
+
+    res.status(200).json({ message: "Member removed and tasks unassigned.", project });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 async function getAssignedProjects(req, res) {
   try {
     const { search, status } = req.query;
@@ -304,4 +337,4 @@ async function getProjectMembers(req, res) {
 
 
 
-module.exports = { getUserProjects, createProject, getProject, updateProject, deleteProject, invite, respondInvite, getAssignedProjects, getProjectMembers };
+module.exports = { getUserProjects, createProject, getProject, updateProject, deleteProject, invite, respondInvite, getAssignedProjects, getProjectMembers, removeMember };
