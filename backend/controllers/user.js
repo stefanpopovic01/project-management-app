@@ -5,13 +5,24 @@ async function getUsers(req, res) {
     try {
         const { search } = req.query;
 
-        if (!search) {
-            return res.status(400).json({ message: "Search query required" });
+        if (!search || search.length < 2) {
+            return res.status(200).json({ users: [] });
         }
 
-        const query = {};
-        query.email = { $regex: search, $options: "i" };
-        const users = await User.find(query).select("email firstName lastName avatarUrl").limit(15);
+        const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters to prevent Regex Injection attacks
+
+        const query = {
+            _id: { $ne: req.user.id }, // Exclude the logged-in user
+            $or: [
+                { email: { $regex: escapedSearch, $options: "i" } },
+                { firstName: { $regex: escapedSearch, $options: "i" } },
+                { lastName: { $regex: escapedSearch, $options: "i" } }
+            ]
+        };
+
+        const users = await User.find(query)
+            .select("email firstName lastName avatarUrl")
+            .limit(15);
 
         res.status(200).json({ users });
     } catch (err) {

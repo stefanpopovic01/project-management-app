@@ -18,6 +18,36 @@ function auth(req, res, next) {
   }
 }
 
-module.exports = { auth };
+const isProjectCreator = async (req, res, next) => {
+  const project = await Project.findById(req.params.projectId || req.params.id);
+  
+  if (!project) return res.status(404).json({ message: "Project not found" });
+
+  if (project.creator.toString() !== req.user.id) {
+    return res.status(403).json({ message: "Access denied. Only the creator can perform this action." });
+  }
+
+  req.project = project; 
+  next();
+};
+
+const isProjectMember = async (req, res, next) => {
+  const projectId = req.params.projectId || req.params.id;
+  const isMember = await Project.findOne({
+    _id: projectId,
+    $or: [
+      { creator: req.user.id },
+      { "members.user": req.user.id, "members.status": "accepted" }
+    ]
+  });
+
+  if (!isMember) {
+    return res.status(403).json({ message: "You are not a member of this project." });
+  }
+  next();
+};
+
+
+module.exports = { auth, isProjectCreator, isProjectMember };
 
 
