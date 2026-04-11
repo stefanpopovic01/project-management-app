@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const Task = require("../models/Task");
+const Project = require("../models/Project");
 const Notification = require("../models/Notification");
 
 async function getUsers(req, res) {
@@ -67,17 +69,27 @@ async function editUser(req, res) {
 }
 
 async function deleteUser(req, res) {
-    try {
-        const user = await User.findByIdAndDelete(req.params.id);
+  try {
+    const userId = req.user.id;
 
-        if (!user) return res.status(404).json({ message: "User not found." });
-        res.json(user)
+    await Project.updateMany(
+      { "members.user": userId },
+      { $pull: { members: { user: userId } } }
+    );
 
-    } catch (err) {
-        res.status(400).json({ error: err.message })
-    }
+    await Task.updateMany(
+      { assignedTo: userId },
+      { $set: { assignedTo: null } }
+    );
+
+    await Project.deleteMany({ creator: userId });
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).json({ message: "User and associated data cleared successfully." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }
-
 async function follow(req, res) {
   try {
     const userToFollowId = req.params.id;
