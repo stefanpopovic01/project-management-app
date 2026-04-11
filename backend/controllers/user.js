@@ -32,14 +32,19 @@ async function getUsers(req, res) {
 
 async function getUser(req, res) {
     try {
-        const user = await User.findById(req.params.id);
-        if (!user) return res.status(404).json({ message: "User not found." })
-        res.json(user)
+
+        const user = await User.findById(req.params.id)
+            .select("-password -refreshToken -__v");
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        res.status(200).json(user);
 
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: "Invalid User ID or Server Error" });
     }
-
 }
 
 async function editUser(req, res) {
