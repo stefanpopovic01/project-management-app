@@ -4,11 +4,9 @@ const Notification = require("../models/Notification");
 
 async function getProjectTasks(req, res) {
   try {
-    const userId = req.user.id;
     const projectId = req.params.projectId;
 
     const tasks = await Task.find({
-      assignedTo: userId,
       project: projectId
     })
     .sort({ position: 1 });
@@ -59,7 +57,7 @@ async function getTask(req, res) {
   try {
     const task = await Task.findById(req.params.id)
       .populate("assignedTo", "firstName lastName email avatarUrl")
-      .populate("project", "title description")
+      .populate("project", "title description creator")
       .populate({
         path: "comments.author",
         select: "firstName lastName avatarUrl"
@@ -67,12 +65,17 @@ async function getTask(req, res) {
 
     if (!task) return res.status(404).json({ message: "Task not found." });
 
-    // 1. Calculate checklist stats
-    // Assuming your checklist items have a 'completed' boolean field
+    const userId = req.user.id;
+    const isAssignee = task.assignedTo?._id.toString() === userId;
+    const isProjectCreator = task.project.creator.toString() === userId;
+
+    if (!isAssignee && !isProjectCreator) {
+      return res.status(403).json({ message: "You do not have permission to view this task." });
+    }
+
     const totalChecklistItems = task.checklist.length;
     const completedChecklistItems = task.checklist.filter(item => item.isDone).length;
 
-    // 2. Return the task with the new stats
     res.status(200).json({
       ...task.toObject(),
       totalChecklistItems,
@@ -248,9 +251,9 @@ async function deleteTask(req, res) {
 
     if (!task) return res.status(404).json({ message: "Task not found." });
 
-    // if (task.project.createdBy.toString() !== req.user.id) {
-    //   return res.status(403).json({ message: "Not authorized to delete this task." });
-    // }
+    if (task.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Only the creator can edit task details." });
+    }
 
     await task.deleteOne();
 

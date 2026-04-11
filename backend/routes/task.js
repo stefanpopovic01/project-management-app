@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const taskController = require("../controllers/task");
-const { auth } = require("../middleware/authMiddleware");
+const { auth, isProjectMember } = require("../middleware/authMiddleware");
 
-router.get("/:projectId/tasks", auth, taskController.getProjectTasks);
+router.get("/:projectId/tasks", auth, isProjectMember, taskController.getProjectTasks);
 router.get("/", auth, taskController.getAllUserTasks);
 router.get("/:id", auth, taskController.getTask);
 router.post("/", auth, taskController.createTask);
