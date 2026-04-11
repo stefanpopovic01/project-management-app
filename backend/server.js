@@ -1,11 +1,14 @@
 require('dotenv').config();
 const mongoose = require("mongoose");
 
+const { Limiter } = require("./middleware/rateLimiter");
+
 const express = require("express");
 const cors = require("cors");
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const hpp = require('hpp');
 const app = express()
-
-const { Limiter } = require("./middleware/rateLimiter");
 
 const userRouter = require("./routes/user");
 const authRouter = require("./routes/auth");
@@ -26,10 +29,13 @@ const corsOptions = {
 
 app.use(express.json());
 app.use(Limiter);
+app.use(helmet());
 app.use(cors(corsOptions));
+app.use(mongoSanitize());
+app.use(hpp());
 
 app.get("/", (req, res) => {
-    res.send("Pocenta stranica.")
+    res.send("Home")
 })
 
 app.use("/user", userRouter);
@@ -37,7 +43,6 @@ app.use("/auth", authRouter);
 app.use("/project", projectRouter);
 app.use("/task", taskRouter);
 app.use("/notification", notificationRouter);
-
 
 app.listen(3001);
 
