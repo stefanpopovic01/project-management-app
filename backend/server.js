@@ -2,6 +2,7 @@ require('dotenv').config();
 const mongoose = require("mongoose");
 
 const express = require("express");
+const { Limiter } = require("./middleware/rateLimiter");
 const app = express()
 
 const userRouter = require("./routes/user");
@@ -15,6 +16,7 @@ mongoose.connect(process.env.MONGO_URI)
 .catch(() => console.log("Nije povezan sa bazom."));
 
 app.use(express.json());
+app.use(Limiter);
 
 app.get("/", (req, res) => {
     res.send("Pocenta stranica.")
