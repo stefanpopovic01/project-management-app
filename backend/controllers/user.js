@@ -48,18 +48,22 @@ async function getUser(req, res) {
 }
 
 async function editUser(req, res) {
-    try {
-        const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true
-        });
+  try {
 
-        if (!user) return res.status(404).json({ message: "User not found." });
-        res.json(user)
- 
-    } catch (err) {
-        res.status(400).json({ error: err.message })
-    }
+    const { password, refreshToken, ...updateData } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id, 
+      { $set: updateData },
+      { new: true, runValidators: true }
+    ).select("-password -refreshToken");
+
+    if (!updatedUser) return res.status(404).json({ message: "User not found." });
+
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }
 
 async function deleteUser(req, res) {

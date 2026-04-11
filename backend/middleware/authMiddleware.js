@@ -47,7 +47,16 @@ const isProjectMember = async (req, res, next) => {
   next();
 };
 
+const isAccountOwner = (req, res, next) => {
+  if (req.params.id !== req.user.id) {
+    return res.status(403).json({ 
+      message: "Access denied. You can only edit your own profile." 
+    });
+  }
+  next();
+};
 
-module.exports = { auth, isProjectCreator, isProjectMember };
+
+module.exports = { auth, isProjectCreator, isProjectMember, isAccountOwner };
 
 
