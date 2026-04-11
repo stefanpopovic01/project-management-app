@@ -5,9 +5,13 @@ const Notification = require("../models/Notification");
 async function getUserProjects(req, res) {
   try {
     const { search, status } = req.query;
-    const userId = req.user.id;
+    
+    const targetUserId = req.params.id || req.user.id;
 
-    let query = { creator: userId };
+    let query = { 
+      creator: targetUserId,
+      deletedAt: null 
+    };
 
     if (search) {
       query.title = { $regex: search, $options: "i" };
@@ -22,13 +26,12 @@ async function getUserProjects(req, res) {
       .populate("members.user", "avatarUrl")
       .populate("creator", "firstName lastName");
 
-      const projectsWithStats = await Promise.all(
+    const projectsWithStats = await Promise.all(
       projects.map(async (project) => {
-        const totalTasks = await Task.countDocuments({ project: project._id });
-        const completedTasks = await Task.countDocuments({ 
-          project: project._id, 
-          status: "done" 
-        });
+        const [totalTasks, completedTasks] = await Promise.all([
+          Task.countDocuments({ project: project._id }),
+          Task.countDocuments({ project: project._id, status: "done" })
+        ]);
 
         return {
           ...project.toObject(),
@@ -148,7 +151,6 @@ async function invite(req, res) {
     );
 
     if (alreadyInvited) {
-      // You could even customize this: if status is 'declined', allow re-invite
       return res.status(400).json({ message: "User is already a member or has a pending invite" });
     }
 
@@ -233,10 +235,6 @@ async function removeMember(req, res) {
       return res.status(404).json({ message: "Project not found." });
     }
 
-    if (project.creator.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Only the project creator can remove members." });
-    }
-
     const memberIndex = project.members.findIndex(m => m.user.toString() === userId);
     if (memberIndex === -1) {
       return res.status(404).json({ message: "User is not a member of this project." });
@@ -259,7 +257,7 @@ async function removeMember(req, res) {
 async function getAssignedProjects(req, res) {
   try {
     const { search, status } = req.query;
-    const userId = req.user.id;
+    const userId = req.params.id || req.user.id;
 
     let query = {
       members: {
