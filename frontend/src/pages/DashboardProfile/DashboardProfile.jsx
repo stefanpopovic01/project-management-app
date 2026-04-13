@@ -2,6 +2,10 @@ import React, { useState, useEffect, useContext } from "react";
 import { useParams } from "react-router-dom";
 
 import { getUser, getFollowers, getFollowing } from "../../api/services/userServices";
+import { getUserProjects, getAssignedProjects } from "../../api/services/projectServices";
+
+import { formatTimeAgo } from "..//../utils/formatDate";
+
 
 import "./DashboardProfile.css";
 import EditProfileDrawer from "../../components/EditProfile/EditProfileDrawer"
@@ -148,6 +152,9 @@ const Icon = {
 };
 
 function ProjectCard({ project, showRole = false }) {
+
+  const timeAgo = project?.updatedAt ? formatTimeAgo(project.updatedAt) : "";
+
   return (
     <div className="dp-project-card">
       <div className="dp-project-top">
@@ -166,9 +173,9 @@ function ProjectCard({ project, showRole = false }) {
         <div className="dp-project-meta">
           <span className="dp-project-status">
             <span className={`dp-status-dot ${project.status}`} />
-            {project.statusLabel}
+            {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
           </span>
-          <span className="dp-project-date">{project.date}</span>
+          <span className="dp-project-date">Updated {timeAgo}</span>
         </div>
       </div>
     </div>
@@ -181,50 +188,42 @@ export default function DashboardProfile() {
   const [user, setUser] = useState(null);
   const [followers, setFollowers] = useState({ count: 0, followers: [] });
   const [following, setFollowing] = useState({ count: 0, followers: [] });
+
+  const [projects, setProjects] = useState({ count: 0, projects: [] });
+  const [assigned, setAssigned] = useState({ count: 0, projects: [] });
+
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
 
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const res = await getUser(id); 
-        setUser(res.data);
+      const [userRes, followersRes, followingRes, projectsRes, assignedRes] = await Promise.all([
+        getUser(id),
+        getFollowers(id),
+        getFollowing(id),
+        getUserProjects(id),
+        getAssignedProjects(id)
+      ]);
 
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setUser(userRes.data);
+      setFollowers(followersRes.data);
+      setFollowing(followingRes.data);
+      setProjects(projectsRes.data);
+      setAssigned(assignedRes.data);
 
-    const fetchFollowers = async () => {
-      try {
-        const res = await getFollowers(id);
-        setFollowers(res.data)
+    } catch (err) {
+      console.error("Error loading profile data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      } catch (err) {
-        console.error("Error while fetching followers:", err.response ? err.response.data : err.message);
-      }
-    };
-
-    const fetchFollowings = async () => {
-      console.log("test");
-      try {
-        const res = await getFollowing(id);
-        setFollowing(res.data);
-
-      } catch (err) {
-        console.error("Error while fetching followings:", err.response ? err.response.data : err.message);
-      }
-    };
-
-    fetchUser();
-    fetchFollowers();
-    fetchFollowings();
-
-
-  }, [id]);
+  if (id) {
+    fetchDashboardData();
+  }
+}, [id]);
 
   const [profile, setProfile] = useState(initialProfile);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -247,6 +246,7 @@ export default function DashboardProfile() {
     month: 'short',
     year: 'numeric'
   });
+
 
   return (
     <>
@@ -318,7 +318,7 @@ export default function DashboardProfile() {
             {/* Stats */}
             <div className="dp-stats-strip">
               <div className="dp-stat">
-                <div className="dp-stat-value">24</div>
+                <div className="dp-stat-value">{projects.count}</div>
                 <div className="dp-stat-label">Projects</div>
               </div>
               <div className="dp-stat">
@@ -344,11 +344,11 @@ export default function DashboardProfile() {
                   <span className="dp-section-title-dot" />
                   Created Projects
                 </span>
-                <span className="dp-section-count">{createdProjects.length}</span>
+                <span className="dp-section-count">{projects.count}</span>
               </div>
               <div className="dp-projects-list">
-                {createdProjects.length > 0
-                  ? createdProjects.map((p) => <ProjectCard key={p.id} project={p} />)
+                {projects.count > 0
+                  ? projects.projects.map((p) => <ProjectCard key={p._id} project={p} />)
                   : <div className="dp-empty">No projects created yet.</div>}
               </div>
             </div>
@@ -359,12 +359,12 @@ export default function DashboardProfile() {
                   <span className="dp-section-title-dot" />
                   Collaborated On
                 </span>
-                <span className="dp-section-count">{collaboratedProjects.length}</span>
+                <span className="dp-section-count">{assigned.count}</span>
               </div>
               <div className="dp-projects-list">
-                {collaboratedProjects.length > 0
-                  ? collaboratedProjects.map((p) => (
-                      <ProjectCard key={p.id} project={p} showRole />
+                {assigned.count > 0
+                  ? assigned.projects.map((p) => (
+                      <ProjectCard key={p._id} project={p} showRole />
                     ))
                   : <div className="dp-empty">No collaborations yet.</div>}
               </div>
