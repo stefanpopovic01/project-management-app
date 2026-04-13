@@ -141,7 +141,7 @@ async function deleteProject(req, res) {
 
 async function invite(req, res) {
   try {
-    const { projectId, userId, role = "member", expiresAt } = req.body;
+    const { projectId, userId, expiresAt } = req.body;
 
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ message: "Project not found" });
@@ -157,7 +157,7 @@ async function invite(req, res) {
     project.members.push({
       user: userId,
       invitedBy: req.user.id,
-      role: role,
+      // role: role,
       status: "pending",
       invitedAt: Date.now(),
       expiresAt: expiresAt || null

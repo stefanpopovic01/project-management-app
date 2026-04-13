@@ -19,7 +19,10 @@ function auth(req, res, next) {
 }
 
 const isProjectCreator = async (req, res, next) => {
-  const project = await Project.findById(req.params.projectId || req.params.id);
+
+  const id = req.params.projectId || req.params.id || req.body.projectId;
+  
+  const project = await Project.findById(id);
   
   if (!project) return res.status(404).json({ message: "Project not found" });
 
