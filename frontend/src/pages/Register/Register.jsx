@@ -1,41 +1,67 @@
 import './Register.css'
 import { React, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { register } from '../../api/services/authServices';
 
 import backgroundimg1 from '../../assets/login1.png';
 import backgroundimg2 from '../../assets/login2.png'
 
 function Register() {
 
-  const [username, setUsername] = useState("");
-  const [name, setName] = useState("");
-  const [surname, setSurname] = useState("");
+  const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [password1, setPassword1] = useState("");
 
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
+  const navigate = useNavigate();
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
+   if (password !== password1) {
+      setError("Passwords do not match!");
+      return;
+    }
+
+    try {
+      const res = await register({ email, password, firstName });
+
+      setSuccess(true);
+      setError("");
+
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong..");
+      setSuccess(false);
+    }
+  };
+
+  if (success) {
+    setTimeout(() => {
+      navigate("/login");
+    }, 1500); 
+  }
+
   return (
-    <div className="register-container">
+    <div className="register-container" onSubmit={handleRegister}>
       <form className="register-form">
         <h2>Register</h2>
 
-        <label>Username</label>
-        <input type="text" placeholder="Enter username" required value={username} onChange={(e) => setUsername(e.target.value)}/>
-
-        {/* <label>Name</label>
-        <input type="text" placeholder="Enter name" required value={name} onChange={(e) => setName(e.target.value)}/>
-
-        <label>Surname</label>
-        <input type="text" placeholder="Enter surname" required value={surname} onChange={(e) => setSurname(e.target.value)}/> */}
+        <label>First name</label>
+        <input type="text" placeholder="Enter name" required value={firstName} onChange={(e) => setFirstName(e.target.value)}/>
 
         <label>Email</label>
         <input type="email" placeholder="Enter email" required value={email} onChange={(e) => setEmail(e.target.value)}/>
 
         <label>Password</label>
         <input type="password" placeholder="********" required value={password} onChange={(e) => setPassword(e.target.value)}/>
+      
+        <label>Repeat password</label>
+        <input type="password" placeholder="********" required value={password1} onChange={(e) => setPassword1(e.target.value)}/>
 
-        <button type="submit">Submit</button>
+        <button type="submit" disabled={!password || password !== password1}>Submit</button>
 
         <p className="login-link">
           Already have an account? <span onClick={() => navigate("/login")}>Login</span>
