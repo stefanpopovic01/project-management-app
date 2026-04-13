@@ -40,7 +40,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path='/dashboard' element={<Dashboard />} />
-          <Route path='/dashboard-settings' element={<DashboardProfile />} />
+          <Route path='/dashboard-profile/:id' element={<DashboardProfile />} />
           <Route path='/dashboard-projects' element={<DashboardProjects />} />
           <Route path="/dashboard-projects/:id" element={<DashboardSingleProject />} />
         </Routes>

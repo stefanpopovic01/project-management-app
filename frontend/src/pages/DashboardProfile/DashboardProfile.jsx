@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { useParams } from "react-router-dom";
+
+import { getUser, getFollowers, getFollowing } from "../../api/services/userServices";
+
 import "./DashboardProfile.css";
 import EditProfileDrawer from "../../components/EditProfile/EditProfileDrawer"
-
 
 const initialProfile = {
   firstName:   "Alex",
@@ -16,7 +19,7 @@ const initialProfile = {
     "Designing digital products that feel human. Passionate about building scalable design systems, improving user flows, and collaborating closely with engineering. Previously at Stripe and Notion.",
   skills:    ["UI/UX Design", "Figma", "React", "Design Systems", "Prototyping", "User Research"],
   avatarSrc: null,
-  stats: {
+  stats: { 
     projects:      24,
     contributions: 61,
     followers:     318,
@@ -173,6 +176,56 @@ function ProjectCard({ project, showRole = false }) {
 }
 
 export default function DashboardProfile() {
+
+  const { id } = useParams();
+  const [user, setUser] = useState(null);
+  const [followers, setFollowers] = useState({ count: 0, followers: [] });
+  const [following, setFollowing] = useState({ count: 0, followers: [] });
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const res = await getUser(id); 
+        setUser(res.data);
+
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchFollowers = async () => {
+      try {
+        const res = await getFollowers(id);
+        setFollowers(res.data)
+
+      } catch (err) {
+        console.error("Error while fetching followers:", err.response ? err.response.data : err.message);
+      }
+    };
+
+    const fetchFollowings = async () => {
+      console.log("test");
+      try {
+        const res = await getFollowing(id);
+        setFollowing(res.data);
+
+      } catch (err) {
+        console.error("Error while fetching followings:", err.response ? err.response.data : err.message);
+      }
+    };
+
+    fetchUser();
+    fetchFollowers();
+    fetchFollowings();
+
+
+  }, [id]);
+
   const [profile, setProfile] = useState(initialProfile);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -183,6 +236,17 @@ export default function DashboardProfile() {
       initials: `${updated.firstName?.[0] ?? ""}${updated.lastName?.[0] ?? ""}`.toUpperCase(),
     }));
   };
+
+  if (loading) return <p>Loading...</p>;
+  if (!user) return <p>User not found</p>;
+
+  const initials = (user.firstName?.[0] || "") + (user.lastName?.[0] || "");
+  const displayInitials = initials.toUpperCase();
+
+  const joinedDate = new Date(user.createdAt).toLocaleDateString('en-US', {
+    month: 'short',
+    year: 'numeric'
+  });
 
   return (
     <>
@@ -206,9 +270,9 @@ export default function DashboardProfile() {
             <div className="dp-profile-header">
               <div className="dp-avatar-wrap">
                 <div className="dp-avatar">
-                  {profile.avatarSrc
-                    ? <img src={profile.avatarSrc} alt={`${profile.firstName} ${profile.lastName}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
-                    : profile.initials}
+                  {user.avatarUrl
+                    ? <img src={user.avatarUrl} alt={`${user.firstName} ${user.lastName}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                    : displayInitials }
                 </div>
                 <div className="dp-avatar-badge" />
               </div>
@@ -227,25 +291,25 @@ export default function DashboardProfile() {
 
             <div className="dp-profile-info">
               <h1 className="dp-name">
-                {profile.firstName} {profile.lastName}
+                {user.firstName} {user.lastName}
               </h1>
 
               <div className="dp-position-row">
-                <span className="dp-position">{profile.position}</span>
+                <span className="dp-position">{user.position}</span>
                 <span className="dp-divider-dot" />
-                <span className="dp-company">{profile.company}</span>
+                <span className="dp-company">{user.company}</span>
               </div>
 
               <div className="dp-meta-row">
-                <span className="dp-meta-item">{Icon.location}{profile.location}</span>
-                <span className="dp-meta-item">{Icon.mail}{profile.email}</span>
-                <span className="dp-meta-item">{Icon.clock}{profile.joined}</span>
+                <span className="dp-meta-item">{Icon.location}{user.location}</span>
+                <span className="dp-meta-item">{Icon.mail}{user.email}</span>
+                <span className="dp-meta-item">{Icon.clock}{`Joined ${joinedDate}`}</span>
               </div>
 
-              <p className="dp-description">{profile.description}</p>
+              <p className="dp-description">{user.bio}</p>
 
               <div className="dp-skills-row">
-                {profile.skills.map((s) => (
+                {user.skills.map((s) => (
                   <span key={s} className="dp-skill-tag">{s}</span>
                 ))}
               </div>
@@ -254,19 +318,19 @@ export default function DashboardProfile() {
             {/* Stats */}
             <div className="dp-stats-strip">
               <div className="dp-stat">
-                <div className="dp-stat-value">{profile.stats.projects}</div>
+                <div className="dp-stat-value">24</div>
                 <div className="dp-stat-label">Projects</div>
               </div>
               <div className="dp-stat">
-                <div className="dp-stat-value">{profile.stats.contributions}</div>
+                <div className="dp-stat-value">61</div>
                 <div className="dp-stat-label">Contributions</div>
               </div>
               <div className="dp-stat">
-                <div className="dp-stat-value">{profile.stats.followers}</div>
+                <div className="dp-stat-value">{followers.count}</div>
                 <div className="dp-stat-label">Followers</div>
               </div>
               <div className="dp-stat">
-                <div className="dp-stat-value">{profile.stats.following}</div>
+                <div className="dp-stat-value">{following.count}</div>
                 <div className="dp-stat-label">Following</div>
               </div>
             </div>
