@@ -10,15 +10,11 @@ const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
 const app = express()
 
-const userRouter = require("./routes/user");
-const authRouter = require("./routes/auth");
-const projectRouter = require("./routes/project");
-const taskRouter = require("./routes/task");
-const notificationRouter = require("./routes/notification");
-
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("Povezan sa bazom."))
 .catch(() => console.log("Nije povezan sa bazom."));
+
+app.use(helmet());
 
 const corsOptions = {
     origin: 'http://localhost:5173', 
@@ -27,12 +23,17 @@ const corsOptions = {
     optionsSuccessStatus: 200 
 };
 
-app.use(express.json());
-app.use(Limiter);
-app.use(helmet());
 app.use(cors(corsOptions));
-app.use(mongoSanitize());
+app.use(express.json());
+// app.use(mongoSanitize());
 app.use(hpp());
+app.use(Limiter);
+
+const userRouter = require("./routes/user");
+const authRouter = require("./routes/auth");
+const projectRouter = require("./routes/project");
+const taskRouter = require("./routes/task");
+const notificationRouter = require("./routes/notification");
 
 app.get("/", (req, res) => {
     res.send("Home")
@@ -61,4 +62,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(3001);
+
+
+
 
