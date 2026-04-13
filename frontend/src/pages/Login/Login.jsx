@@ -1,20 +1,45 @@
-import { React, useState} from 'react';
+import { React, useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Login.css'
+
+import { login } from '../../api/services/authServices';
+import { AuthContext } from '../../contex/authContext';
 
 import backgroundimg1 from '../../assets/login1.png';
 import backgroundimg2 from '../../assets/login2.png'
+
 
 function Login() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState("");
+    
+    const { loginContext } = useContext(AuthContext);
+
+    const navigate = useNavigate();
+
+    const handeLogin = async (e) => {
+        e.preventDefault();
+
+        try {
+          const res = await login({ email, password });
+
+          setSuccess(true);
+          setError("");
+          loginContext(res.data.user, res.data.accessToken);
+          navigate("/dashboard");
+
+        } catch (err) {
+          setError(err.response?.data?.message || "Wrong credentials.");
+          setSuccess(false);
+        }
+    };
 
   return (
     <div className="login-container">
-      <form className="login-form">
+      <form className="login-form" onSubmit={handeLogin}>
         <h2>Login</h2>
 
         <label>Email</label>
@@ -26,7 +51,7 @@ function Login() {
         <button type="submit">Submit</button>
 
         <p className="register-link">
-          Not registered? <span>Register</span>
+          Not registered? <span onClick={() => navigate("/register")}>Register</span>
         </p>
 
         {success && <p className="success-msg">Welcome back, you’re logged in!</p>}
