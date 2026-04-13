@@ -6,6 +6,11 @@ async function Register(req, res) {
         const user = new User(req.body);
         await user.save();
 
+        const userObj = user.toObject();
+        const { password, ...userWithoutPassword } = userObj;
+    
+        return res.status(201).json({ message: "User created!", user: userWithoutPassword });
+
     } catch (err) {
         res.status(400).json({ error: err.message })
     }
