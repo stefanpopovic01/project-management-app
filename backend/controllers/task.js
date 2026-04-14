@@ -23,7 +23,7 @@ async function getProjectTasks(req, res) {
 
 async function getAllUserTasks(req, res) {
   try {
-    const userId = req.user.id;
+    const userId = req.params.id;
     const now = new Date();
 
     const tasks = await Task.find({ assignedTo: userId });
