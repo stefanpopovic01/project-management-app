@@ -147,6 +147,7 @@
   font-weight: 700;
   color: var(--blue);
   overflow: hidden;
+  background-color: rgb(211, 219, 248);
 }
 
 .dp-avatar-badge {

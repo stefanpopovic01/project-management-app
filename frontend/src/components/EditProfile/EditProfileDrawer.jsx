@@ -84,7 +84,7 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
         company:     profile.company     ?? "",
         location:    profile.location    ?? "",
         email:       profile.email       ?? "",
-        description: profile.description ?? "",
+        description: profile.bio ?? "",
         skills:      [...(profile.skills ?? [])],
         avatarSrc:   profile.avatarSrc   ?? null,
       });

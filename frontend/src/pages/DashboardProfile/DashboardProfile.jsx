@@ -1,114 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
+import "./DashboardProfile.css";
 import { useParams } from "react-router-dom";
-
 import { getUser, getFollowers, getFollowing } from "../../api/services/userServices";
 import { getUserProjects, getAssignedProjects } from "../../api/services/projectServices";
-
+import { getAllUserTasks } from "../../api/services/taskServices";
 import { formatTimeAgo } from "..//../utils/formatDate";
-
-
-import "./DashboardProfile.css";
 import EditProfileDrawer from "../../components/EditProfile/EditProfileDrawer"
-
-const initialProfile = {
-  firstName:   "Alex",
-  lastName:    "Morrison",
-  initials:    "AM",
-  position:    "Senior Product Designer",
-  company:     "Figma Inc.",
-  location:    "San Francisco, CA",
-  email:       "alex.morrison@figma.com",
-  joined:      "Joined Jan 2021",
-  description:
-    "Designing digital products that feel human. Passionate about building scalable design systems, improving user flows, and collaborating closely with engineering. Previously at Stripe and Notion.",
-  skills:    ["UI/UX Design", "Figma", "React", "Design Systems", "Prototyping", "User Research"],
-  avatarSrc: null,
-  stats: { 
-    projects:      24,
-    contributions: 61,
-    followers:     318,
-    following:     74,
-  },
-};
-
-const createdProjects = [
-  {
-    id: 1,
-    title: "Design System v3",
-    description:
-      "A comprehensive component library built in Figma with React integration, covering tokens, patterns, and documentation.",
-    // tags: ["Figma", "React", "Documentation"],
-    status: "active",
-    statusLabel: "Active",
-    date: "Updated 2d ago",
-  },
-  {
-    id: 2,
-    title: "Onboarding Flow Redesign",
-    description:
-      "End-to-end redesign of the user onboarding experience, reducing drop-off by 34% in A/B tests.",
-    // tags: ["UX Research", "Prototyping"],
-    status: "review",
-    statusLabel: "In Review",
-    date: "Updated 5d ago",
-  },
-  {
-    id: 3,
-    title: "Analytics Dashboard",
-    description:
-      "Real-time analytics dashboard for internal teams, featuring customisable widgets and data export.",
-    // tags: ["Dashboard", "Data Viz"],
-    status: "planning",
-    statusLabel: "Planning",
-    date: "Updated 2w ago",
-  },
-  {
-    id: 4,
-    title: "Mobile App Audit",
-    description:
-      "Accessibility and performance audit across iOS and Android surfaces with a prioritised fix backlog.",
-    // tags: ["Mobile", "Accessibility"],
-    status: "archived",
-    statusLabel: "Archived",
-    date: "Updated 3mo ago",
-  },
-];
-
-const collaboratedProjects = [
-  {
-    id: 5,
-    title: "Checkout Optimisation",
-    description:
-      "Collaborated on reducing checkout friction, shipping 6 incremental improvements over Q3.",
-    // tags: ["E-commerce", "A/B Testing"],
-    status: "active",
-    statusLabel: "Active",
-    date: "Updated 1d ago",
-    role: "Contributor",
-  },
-  {
-    id: 6,
-    title: "Brand Refresh 2024",
-    description:
-      "Supported the brand team on iconography, illustration style, and motion guidelines.",
-    // tags: ["Branding", "Motion"],
-    status: "archived",
-    statusLabel: "Archived",
-    date: "Updated 6mo ago",
-    role: "Reviewer",
-  },
-  {
-    id: 7,
-    title: "API Developer Portal",
-    description:
-      "UX lead for the developer-facing documentation portal — IA, navigation, and code sample formatting.",
-    // tags: ["Developer UX", "Docs"],
-    status: "review",
-    statusLabel: "In Review",
-    date: "Updated 3d ago",
-    role: "UX Lead",
-  },
-];
+import { AuthContext } from "../../contex/authContext";
 
 const Icon = {
   pencil: (
@@ -184,6 +82,8 @@ function ProjectCard({ project, showRole = false }) {
 
 export default function DashboardProfile() {
 
+  const { user: currentUser } = useContext(AuthContext);
+
   const { id } = useParams();
   const [user, setUser] = useState(null);
   const [followers, setFollowers] = useState({ count: 0, followers: [] });
@@ -192,6 +92,16 @@ export default function DashboardProfile() {
   const [projects, setProjects] = useState({ count: 0, projects: [] });
   const [assigned, setAssigned] = useState({ count: 0, projects: [] });
 
+  const [userTasks, setUserTasks] = useState({
+    tasks: [],
+    stats: {
+      total: 0,
+      completed: 0,
+      overdue: 0,
+      pending: 0
+    }
+  });
+
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -199,12 +109,13 @@ export default function DashboardProfile() {
     try {
       setLoading(true);
 
-      const [userRes, followersRes, followingRes, projectsRes, assignedRes] = await Promise.all([
+      const [userRes, followersRes, followingRes, projectsRes, assignedRes, taskRes] = await Promise.all([
         getUser(id),
         getFollowers(id),
         getFollowing(id),
         getUserProjects(id),
-        getAssignedProjects(id)
+        getAssignedProjects(id),
+        getAllUserTasks(id)
       ]);
 
       setUser(userRes.data);
@@ -212,6 +123,7 @@ export default function DashboardProfile() {
       setFollowing(followingRes.data);
       setProjects(projectsRes.data);
       setAssigned(assignedRes.data);
+      setUserTasks(taskRes.data)
 
     } catch (err) {
       console.error("Error loading profile data:", err);
@@ -225,7 +137,6 @@ export default function DashboardProfile() {
   }
 }, [id]);
 
-  const [profile, setProfile] = useState(initialProfile);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleSave = (updated) => {
@@ -247,6 +158,26 @@ export default function DashboardProfile() {
     year: 'numeric'
   });
 
+  const isOwnProfile = currentUser?.id === user?._id;
+
+  const handleShare = async () => {
+    const shareData = {
+      title: "User Profile",
+      text: `Check out ${user.name}'s profile on our platform!`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert("Link copied to clipboard!");
+      }
+    } catch (err) {
+      console.log("Share cancelled or failed", err);
+    }
+  };
 
   return (
     <>
@@ -256,10 +187,12 @@ export default function DashboardProfile() {
         <div className="dp-banner-wrap">
           <div className="dp-banner">
             <div className="dp-banner-dots" />
-            <button className="dp-banner-edit-btn">
-              {Icon.pencil}
-              Edit banner
-            </button>
+            {isOwnProfile && (
+              <button className="dp-banner-edit-btn">
+                {Icon.pencil}
+                Edit banner
+              </button>
+            )}
           </div>
         </div>
 
@@ -278,14 +211,18 @@ export default function DashboardProfile() {
               </div>
 
               <div className="dp-profile-actions">
-                <button className="dp-btn ghost">{Icon.share} Share</button>
+                <button className="dp-btn ghost" onClick={() => handleShare()}>{Icon.share} Share</button>
+              {isOwnProfile && (
                 <button
                   className="dp-btn outline"
                   onClick={() => setDrawerOpen(true)}
                 >
                   {Icon.pencil} Edit Profile
                 </button>
-                <button className="dp-btn primary">{Icon.plus} Follow</button>
+              )}
+                {!isOwnProfile && (
+                  <button className="dp-btn primary">{Icon.plus} Follow</button>
+                )}
               </div>
             </div>
 
@@ -322,7 +259,7 @@ export default function DashboardProfile() {
                 <div className="dp-stat-label">Projects</div>
               </div>
               <div className="dp-stat">
-                <div className="dp-stat-value">61</div>
+                <div className="dp-stat-value">{userTasks.stats.completed}</div>
                 <div className="dp-stat-label">Contributions</div>
               </div>
               <div className="dp-stat">
@@ -373,11 +310,10 @@ export default function DashboardProfile() {
         </div>
       </div>
 
-      {/*  Edit Profile Drawer */}
       <EditProfileDrawer
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        profile={profile}
+        profile={user}
         onSave={handleSave}
       />
     </>
