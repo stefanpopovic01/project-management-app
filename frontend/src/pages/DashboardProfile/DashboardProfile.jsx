@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import "./DashboardProfile.css";
 import { useParams } from "react-router-dom";
-import { getUser, getFollowers, getFollowing } from "../../api/services/userServices";
+import { getUser, getFollowers, getFollowing, follow, unfollow } from "../../api/services/userServices";
 import { getUserProjects, getAssignedProjects } from "../../api/services/projectServices";
 import { getAllUserTasks } from "../../api/services/taskServices";
 import { formatTimeAgo } from "..//../utils/formatDate";
@@ -82,7 +82,7 @@ function ProjectCard({ project, showRole = false }) {
 
 export default function DashboardProfile() {
 
-  const { user: currentUser } = useContext(AuthContext);
+  const { user: currentUser, updateUser } = useContext(AuthContext);
 
   const { id } = useParams();
   const [user, setUser] = useState(null);
@@ -103,6 +103,8 @@ export default function DashboardProfile() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [follow1, setFollow] = useState("");
+  const [unfollow1, setUnfollow] = useState("");
   
   useEffect(() => {
   const fetchDashboardData = async () => {
@@ -179,6 +181,39 @@ export default function DashboardProfile() {
     }
   };
 
+  const isFollowing = currentUser?.following?.some(
+    (id) => id.toString() === user?._id?.toString()
+  );
+
+  const handleFollow = async () => {
+    try {
+      const res = await follow(id);
+
+      updateUser({
+            following: [...currentUser.following, id]
+          });
+
+      setFollow(`${user.firstName} ${user.lastName} followed succesfully.`);
+      
+    } catch (err) {
+      console.error("Follow failed:", err.response?.data?.message || err.message);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    try {
+      const res = await unfollow(id);
+
+      updateUser({
+            following: currentUser.following.filter(favId => favId !== id)
+          });
+      setUnfollow(`${user.firstName} ${user.lastName} unfollowed succesfully.`);
+      
+    } catch (err) {
+      console.error("Follow failed:", err.response?.data?.message || err.message);
+    }
+  };
+
   return (
     <>
       <div className="dp-page">
@@ -221,7 +256,7 @@ export default function DashboardProfile() {
                 </button>
               )}
                 {!isOwnProfile && (
-                  <button className="dp-btn primary">{Icon.plus} Follow</button>
+                  <button onClick={isFollowing ? handleUnfollow : handleFollow } className="dp-btn primary"> {Icon.plus} {isFollowing ? "Unfollow" : "Follow"} </button>
                 )}
               </div>
             </div>
