@@ -11,3 +11,11 @@ export const getFollowers = (id) => {
 export const getFollowing = (id) => {
     return api.get(`/user/following/${id}`);
 }
+
+export const follow = (id) => {
+    return api.patch(`/user/follow/${id}`);
+}
+
+export const unfollow = (id) => {
+    return api.patch(`/user/unfollow/${id}`);
+}
