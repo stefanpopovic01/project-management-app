@@ -45,7 +45,8 @@ async function Login(req, res) {
                 lastName: user.lastName,
                 avatarUrl: user.avatarUrl,
                 position: user.position,
-                location: user.location
+                location: user.location,
+                following: user.following
                 },
         });
     
