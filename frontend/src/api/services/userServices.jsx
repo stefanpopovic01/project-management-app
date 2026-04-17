@@ -12,6 +12,10 @@ export const getFollowing = (id) => {
     return api.get(`/user/following/${id}`);
 }
 
+export const editUser = (id, form) => {
+    return api.patch(`/user/${id}`, form);
+}
+
 export const follow = (id) => {
     return api.patch(`/user/follow/${id}`);
 }

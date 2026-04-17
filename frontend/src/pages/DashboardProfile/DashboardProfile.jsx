@@ -141,14 +141,6 @@ export default function DashboardProfile() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const handleSave = (updated) => {
-    setProfile((prev) => ({
-      ...prev,
-      ...updated,
-      initials: `${updated.firstName?.[0] ?? ""}${updated.lastName?.[0] ?? ""}`.toUpperCase(),
-    }));
-  };
-
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>User not found</p>;
 
@@ -212,6 +204,10 @@ export default function DashboardProfile() {
     } catch (err) {
       console.error("Follow failed:", err.response?.data?.message || err.message);
     }
+  };
+
+  const handleUpdateUser = (updatedData) => {
+  setUser(updatedData);
   };
 
   return (
@@ -349,7 +345,7 @@ export default function DashboardProfile() {
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         profile={user}
-        onSave={handleSave}
+        onSave={handleUpdateUser}
       />
     </>
   );

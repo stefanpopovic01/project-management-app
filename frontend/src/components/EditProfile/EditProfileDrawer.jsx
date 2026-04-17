@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import "./EditProfileDrawer.css";
 import { createPortal } from "react-dom";
+import { editUser } from "../../api/services/userServices";
+import { useParams } from "react-router-dom";
 
 const Icon = {
   close: (
@@ -47,12 +49,12 @@ const Icon = {
   ),
 };
 
-
 const BIO_MAX = 200;
-
 
 export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) {
   
+  const { id } = useParams();
+
   const [form, setForm] = useState({
     firstName:   "",
     lastName:    "",
@@ -60,15 +62,18 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
     company:     "",
     location:    "",
     email:       "",
-    description: "",
+    bio: "",
     skills:      [],
-    avatarSrc:   null,
+    avatarUrl:   null,
   });
 
   const [newSkill, setNewSkill]   = useState("");
   const [saving, setSaving]       = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [isDirty, setIsDirty]     = useState(false);
+
+  const [error, setError] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const fileInputRef  = useRef(null);
   const skillInputRef = useRef(null);
@@ -84,9 +89,9 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
         company:     profile.company     ?? "",
         location:    profile.location    ?? "",
         email:       profile.email       ?? "",
-        description: profile.bio ?? "",
+        bio:         profile.bio ?? "",
         skills:      [...(profile.skills ?? [])],
-        avatarSrc:   profile.avatarSrc   ?? null,
+        avatarUrl:   profile.avatarUrl   ?? null,
       });
       setNewSkill("");
       setIsDirty(false);
@@ -112,17 +117,6 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
     onClose();
   }, [saving, onClose]);
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setForm((prev) => ({ ...prev, avatarSrc: ev.target.result }));
-      setIsDirty(true);
-    };
-    reader.readAsDataURL(file);
-  };
-
   const addSkill = () => {
     const trimmed = newSkill.trim();
     if (!trimmed || form.skills.includes(trimmed)) return;
@@ -141,39 +135,39 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
     if (e.key === "Enter") { e.preventDefault(); addSkill(); }
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-    await new Promise((r) => setTimeout(r, 900));
-    onSave?.({ ...form });
-    setSaving(false);
-    setIsDirty(false);
-    setShowToast(true);
-    toastTimer.current = setTimeout(() => {
-      setShowToast(false);
-      onClose();
-    }, 1800);
-  };
-
   const initials = `${form.firstName?.[0] ?? ""}${form.lastName?.[0] ?? ""}`.toUpperCase();
-  const bioLen   = form.description.length;
+  const bioLen   = form.bio.length;
+
+  const handleSave = async (e) => {
+      e.preventDefault();
+      setError("");
+      setSaving(true);
+
+      try {
+          const res = await editUser(id, form);
+          
+          setSuccess(true);
+          setIsDirty(false);
+          onSave(form); 
+    
+          setTimeout(() => {
+              onClose();
+          }, 1000); 
+
+      } catch (err) {
+          setSuccess(false);
+          setError(err.response?.data?.message || "Something went wrong.");
+      } finally {
+          setSaving(false);
+      }
+  };
 
   return createPortal(
     <>
-      {/*  Backdrop */}
-      <div
-        className={`epd-overlay${isOpen ? " open" : ""}`}
-        onClick={handleClose}
-        aria-hidden="true"
-      />
+      <div className={`epd-overlay${isOpen ? " open" : ""}`} onClick={handleClose} aria-hidden="true" />
 
-      {/*  Drawer */}
-      <aside
-        className={`epd-drawer${isOpen ? " open" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Edit profile"
-      >
-        {/* Header */}
+      <aside className={`epd-drawer${isOpen ? " open" : ""}`} role="dialog" aria-modal="true" aria-label="Edit profile">
+
         <div className="epd-header">
           <div className="epd-header-left">
             <span className="epd-title">Edit Profile</span>
@@ -186,18 +180,14 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
           </button>
         </div>
 
-        {/* Body */}
         <div className="epd-body">
 
-          {/*  Avatar  */}
           <div className="epd-section">
             <span className="epd-section-label">Profile Photo</span>
             <div className="epd-avatar-row">
               <div className="epd-avatar-preview">
                 <div className="epd-avatar">
-                  {form.avatarSrc
-                    ? <img src={form.avatarSrc} alt="Avatar preview" />
-                    : initials || "?"}
+                  {form.avatarUrl ? <img src={form.avatarUrl} alt="Avatar preview" /> : initials || "?"}
                 </div>
                 <div
                   className="epd-avatar-overlay"
@@ -216,25 +206,12 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
                   Upload a new photo to personalise your profile.
                   <span>JPG, PNG or GIF · max 5 MB</span>
                 </p>
-                <button
-                  className="epd-upload-btn"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {Icon.upload} Upload photo
-                </button>
+                <button className="epd-upload-btn" onClick={() => fileInputRef.current?.click()}> {Icon.upload} Upload photo </button>
               </div>
-
-              <input
-                ref={fileInputRef}
-                className="epd-file-input"
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-              />
+              <input ref={fileInputRef} className="epd-file-input" type="file" accept="image/*" />
             </div>
           </div>
 
-          {/*  Name & Position  */}
           <div className="epd-section">
             <span className="epd-section-label">Basic Info</span>
 
@@ -320,7 +297,6 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
             </div>
           </div>
 
-          {/*  Bio  */}
           <div className="epd-section">
             <span className="epd-section-label">Bio</span>
 
@@ -330,23 +306,19 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
                 id="epd-description"
                 className="epd-textarea"
                 placeholder="Tell people a bit about yourself — your background, what you work on, and what you care about."
-                value={form.description}
-                onChange={set("description")}
+                value={form.bio}
+                onChange={set("bio")}
                 maxLength={BIO_MAX}
                 rows={4}
               />
-              <span className={`epd-char-count${bioLen > BIO_MAX * 0.88 ? " warn" : ""}`}>
-                {bioLen} / {BIO_MAX}
-              </span>
+              <span className={`epd-char-count${bioLen > BIO_MAX * 0.88 ? " warn" : ""}`}> {bioLen} / {BIO_MAX} </span>
             </div>
           </div>
 
-          {/*  Skills  */}
           <div className="epd-section">
             <span className="epd-section-label">Skills</span>
 
             <div className="epd-skills-wrap">
-              {/* Current skill chips */}
               <div className="epd-skills-tags" aria-label="Current skills">
                 {form.skills.length === 0 && (
                   <span style={{ fontSize: "0.8125rem", color: "var(--grey-400)" }}>
@@ -356,18 +328,11 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
                 {form.skills.map((skill) => (
                   <span key={skill} className="epd-skill-chip">
                     {skill}
-                    <button
-                      className="epd-skill-remove"
-                      onClick={() => removeSkill(skill)}
-                      aria-label={`Remove ${skill}`}
-                    >
-                      {Icon.x}
-                    </button>
+                    <button className="epd-skill-remove" onClick={() => removeSkill(skill)} aria-label={`Remove ${skill}`}> {Icon.x} </button>
                   </span>
                 ))}
               </div>
 
-              {/* Add new skill */}
               <div className="epd-skill-add-row">
                 <input
                   ref={skillInputRef}
@@ -395,22 +360,17 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
             </div>
           </div>
 
-        </div>{/* end .epd-body */}
+        </div>
 
-        {/* Footer */}
         <div className="epd-footer">
           <span className="epd-footer-left">
             {isDirty ? "You have unsaved changes" : "No pending changes"}
           </span>
           <div className="epd-footer-right">
-            <button className="epd-btn cancel" onClick={handleClose} disabled={saving}>
+            <button className="epd-btn cancel" onClick={(handleClose)} disabled={saving}>
               Cancel
             </button>
-            <button
-              className="epd-btn save"
-              onClick={handleSave}
-              disabled={saving || !isDirty}
-            >
+            <button className="epd-btn save" onClick={handleSave} disabled={saving || !isDirty}>
               {saving
                 ? <><span className="epd-spinner" /> Saving…</>
                 : <>{Icon.save} Save Changes</>}
@@ -419,7 +379,6 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
         </div>
       </aside>
 
-      {/* Success toast */}
       <div className={`epd-toast${showToast ? " show" : ""}`} role="status">
         <span className="epd-toast-icon">{Icon.check}</span>
         Profile updated successfully
