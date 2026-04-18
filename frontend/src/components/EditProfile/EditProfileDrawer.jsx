@@ -148,8 +148,8 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
           
           setSuccess(true);
           setIsDirty(false);
-          onSave(form); 
-    
+          onSave(res.data); 
+
           setTimeout(() => {
               onClose();
           }, 1000); 
@@ -161,6 +161,8 @@ export default function EditProfileDrawer({ isOpen, onClose, profile, onSave }) 
           setSaving(false);
       }
   };
+
+
 
   return createPortal(
     <>
