@@ -26,7 +26,8 @@ async function getAllUserTasks(req, res) {
     const userId = req.params.id;
     const now = new Date();
 
-    const tasks = await Task.find({ assignedTo: userId });
+    const tasks = await Task.find({ assignedTo: userId })
+    .populate("project", "title description creator");
 
     const totalCount = tasks.length;
 
