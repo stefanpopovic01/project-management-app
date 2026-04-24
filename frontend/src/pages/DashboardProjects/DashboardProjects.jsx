@@ -228,6 +228,18 @@ export default function DashboardProjects() {
   const [assigned, setAssigned] = useState({ count: 0, projects: [] });
   const [loading, setLoading] = useState(false);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -235,8 +247,8 @@ export default function DashboardProjects() {
         setLoading(true);
   
         const [projectsRes, assignedRes] = await Promise.all([
-          getUserProjects(id),
-          getAssignedProjects(id)
+          getUserProjects(id, debouncedSearchTerm),
+          getAssignedProjects(id, debouncedSearchTerm)
         ]);
   
         setProjects(projectsRes.data);
@@ -252,10 +264,16 @@ export default function DashboardProjects() {
     if (id) {
       fetchDashboardData();
     }
-  }, [id]);
+  }, [id, debouncedSearchTerm]);
 
-  if (loading) return <p>Loading...</p>;
-
+  if (loading && projects.projects.length === 0) {
+    return (
+      <div className="dashboard-spinner-container">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
+  
   return (
     <div className="dproj-page">
       <div className="dproj-inner">
@@ -283,6 +301,8 @@ export default function DashboardProjects() {
               className="dproj-search"
               type="text"
               placeholder="Search projects…"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>

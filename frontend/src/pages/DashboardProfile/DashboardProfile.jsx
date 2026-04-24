@@ -141,8 +141,13 @@ export default function DashboardProfile() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  if (loading) return <p>Loading...</p>;
-  if (!user) return <p>User not found</p>;
+  if (loading) {
+    return (
+      <div className="dashboard-spinner-container">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
 
   const initials = (user.firstName?.[0] || "") + (user.lastName?.[0] || "");
   const displayInitials = initials.toUpperCase();

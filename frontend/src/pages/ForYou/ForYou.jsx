@@ -165,7 +165,13 @@ export default function ForYou({ currentUser }) {
   
 }, []);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading && projects.projects.length === 0) {
+    return (
+      <div className="dashboard-spinner-container">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="fy-page">
