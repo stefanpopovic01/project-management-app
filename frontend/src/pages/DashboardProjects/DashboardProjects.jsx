@@ -2,36 +2,11 @@ import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "./DashboardProjects.css";
 
-const Icon = {
-  plus: (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7">
-      <line x1="10" y1="4" x2="10" y2="16" /><line x1="4" y1="10" x2="16" y2="10" />
-    </svg>
-  ),
-  calendar: (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
-      <rect x="2" y="4" width="16" height="14" rx="2" />
-      <line x1="2" y1="8" x2="18" y2="8" />
-      <line x1="6" y1="2" x2="6" y2="6" /><line x1="14" y1="2" x2="14" y2="6" />
-    </svg>
-  ),
-  chevLeft: (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <polyline points="13 5 7 10 13 15" />
-    </svg>
-  ),
-  chevRight: (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <polyline points="7 5 13 10 7 15" />
-    </svg>
-  ),
-  export: (
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7">
-      <path d="M10 13V4M6 8l4-4 4 4" /><path d="M3 14v2a1 1 0 001 1h12a1 1 0 001-1v-2" />
-    </svg>
-  ),
-};
-
+import { getUserProjects, getAssignedProjects } from "../../api/services/projectServices";
+import { AuthContext } from "../../contex/authContext";
+import { useContext } from "react";
+import { useParams } from "react-router-dom";
+import { useEffect } from "react";
 
 export const ALL_PROJECTS = [
   {
@@ -116,8 +91,35 @@ export const ALL_PROJECTS = [
   },
 ];
 
-const FILTERS   = ["All", "Active", "Review", "Planning", "Archived"];
-const PAGE_SIZE = 6;
+const Icon = {
+  plus: (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7">
+      <line x1="10" y1="4" x2="10" y2="16" /><line x1="4" y1="10" x2="16" y2="10" />
+    </svg>
+  ),
+  calendar: (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <rect x="2" y="4" width="16" height="14" rx="2" />
+      <line x1="2" y1="8" x2="18" y2="8" />
+      <line x1="6" y1="2" x2="6" y2="6" /><line x1="14" y1="2" x2="14" y2="6" />
+    </svg>
+  ),
+  chevLeft: (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <polyline points="13 5 7 10 13 15" />
+    </svg>
+  ),
+  chevRight: (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <polyline points="7 5 13 10 7 15" />
+    </svg>
+  ),
+  export: (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7">
+      <path d="M10 13V4M6 8l4-4 4 4" /><path d="M3 14v2a1 1 0 001 1h12a1 1 0 001-1v-2" />
+    </svg>
+  ),
+};
 
 function formatDeadline(iso) {
   const d    = new Date(iso);
@@ -131,31 +133,39 @@ function pct(done, total) {
   return total === 0 ? 0 : Math.round((done / total) * 100);
 }
 
-
 function AvatarStack({ members, max = 4 }) {
   const visible = members.slice(0, max);
   const extra   = members.length - max;
   return (
     <div className="dproj-avatars">
       {visible.map((m, i) => (
-        <div key={i} className="dproj-avatar" title={m.name}>{m.initials}</div>
+        <div key={i} className="dproj-avatar" title={`${m.user.firstName} ${m.user.lastName}`}>
+          {m.user.avatarUrl ? (
+            <img src={m.user.avatarUrl} alt={m.user.firstName} />
+          ) : (
+            <p>
+              {((m.user.firstName?.[0] || "") + (m.user.lastName?.[0] || "")).toUpperCase()}
+            </p>
+          )}
+        </div>
       ))}
       {extra > 0 && <div className="dproj-avatar extra">+{extra}</div>}
     </div>
   );
 }
 
-function ProjectCard({ project, onClick }) {
-  const progress = pct(project.tasksDone, project.tasksTotal);
+function ProjectCard({ project, onClick, ownership }) {
+  const progress = pct(project.completedTasks, project.totalTasks);
+
   const { label: deadlineLabel, overdue } = formatDeadline(project.deadline);
   const isDone = progress === 100;
 
   return (
-    <div className={`dproj-card ${project.ownership}`} onClick={() => onClick(project)} >
+    <div className={`dproj-card ${ownership}`} onClick={() => onClick(project)} >
       <div className="dproj-card-top">
         <span className="dproj-card-title">{project.title}</span>
-        <span className={`dproj-ownership-pill ${project.ownership}`}>
-          {project.ownership === "owned" ? "Owner" : "Assigned"}
+        <span className={`dproj-ownership-pill ${ownership}`}>
+          {ownership === "owned" ? "Owner" : "Assigned"}
         </span>
       </div>
 
@@ -164,7 +174,7 @@ function ProjectCard({ project, onClick }) {
       <div className="dproj-progress-wrap">
         <div className="dproj-progress-top">
           <span>Progress</span>
-          <span>{project.tasksDone} / {project.tasksTotal} tasks</span>
+          <span>{project.completedTasks} / {project.totalTasks} tasks</span>
         </div>
         <div className="dproj-progress-track">
           <div className={`dproj-progress-fill${isDone ? " done" : ""}`} style={{ width: `${progress}%` }} />
@@ -181,63 +191,24 @@ function ProjectCard({ project, onClick }) {
             {Icon.calendar} {overdue ? "Overdue · " : ""}{deadlineLabel}
           </span>
         </div>
-        <AvatarStack members={project.members} />
+        <AvatarStack members={project.members.filter(m => m.status === "accepted")} />
       </div>
 
       <div className="dproj-owner-row">
-        <div className="dproj-owner-avatar">{project.owner.initials}</div>
-        <span>by <span className="dproj-owner-name">{project.owner.name}</span></span>
+        <div className="dproj-owner-avatar">
+          {project.creator.avatarUrl ? (
+            <img 
+              src={project.creator.avatarUrl} 
+              alt={`${project.creator.firstName} ${project.creator.lastName}`} 
+            />
+          ) : (
+            <p>
+              {(project.creator.firstName?.[0] || "") + (project.creator.lastName?.[0] || "").toUpperCase()}
+            </p>
+          )}
+        </div>
+        <span>by <span className="dproj-owner-name">{project.creator.firstName}{" "}{project.creator.lastName}</span></span>
       </div>
-    </div>
-  );
-}
-
-function Pagination({ currentPage, totalPages, onPageChange }) {
-  if (totalPages <= 1) return null;
-
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-
-  const getVisible = () => {
-    if (totalPages <= 7) return pages;
-    if (currentPage <= 4) return [...pages.slice(0, 5), "…", totalPages];
-    if (currentPage >= totalPages - 3) return [1, "…", ...pages.slice(totalPages - 5)];
-    return [1, "…", currentPage - 1, currentPage, currentPage + 1, "…", totalPages];
-  };
-
-  return (
-    <div className="dproj-pagination" role="navigation" aria-label="Pagination">
-      <button
-        className="dproj-page-btn"
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        aria-label="Previous page"
-      >
-        {Icon.chevLeft}
-      </button>
-
-      {getVisible().map((p, i) =>
-        p === "…"
-          ? <span key={`e${i}`} className="dproj-page-ellipsis">…</span>
-          : (
-            <button
-              key={p}
-              className={`dproj-page-btn${currentPage === p ? " active" : ""}`}
-              onClick={() => onPageChange(p)}
-              aria-current={currentPage === p ? "page" : undefined}
-            >
-              {p}
-            </button>
-          )
-      )}
-
-      <button
-        className="dproj-page-btn"
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        aria-label="Next page"
-      >
-        {Icon.chevRight}
-      </button>
     </div>
   );
 }
@@ -245,30 +216,45 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
 export default function DashboardProjects() {
   const navigate = useNavigate();
 
-  const [search,       setSearch]       = useState("");
-  const [filter,       setFilter]       = useState("All");
-  const [ownedPage,    setOwnedPage]    = useState(1);
-  const [assignedPage, setAssignedPage] = useState(1);
-
-  const filtered = useMemo(() => {
-    return ALL_PROJECTS.filter((p) => {
-      const matchesFilter = filter === "All" || p.status === filter.toLowerCase();
-      const matchesSearch =
-        p.title.toLowerCase().includes(search.toLowerCase()) ||
-        p.description.toLowerCase().includes(search.toLowerCase());
-      return matchesFilter && matchesSearch;
-    });
-  }, [search, filter]);
-
-  const owned    = filtered.filter((p) => p.ownership === "owned");
-  const assigned = filtered.filter((p) => p.ownership === "assigned");
-
-  const paginate   = (arr, page) => arr.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const totalPages = (arr) => Math.max(1, Math.ceil(arr.length / PAGE_SIZE));
-
   const handleProjectClick = (project) => {
     navigate(`/projects/${project.id}`, { state: { project } });
+    
   };
+
+  const { user: currentUser, updateUser } = useContext(AuthContext);
+  const id = currentUser.id;
+
+  const [projects, setProjects] = useState({ count: 0, projects: [] });
+  const [assigned, setAssigned] = useState({ count: 0, projects: [] });
+  const [loading, setLoading] = useState(false);
+
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+  
+        const [projectsRes, assignedRes] = await Promise.all([
+          getUserProjects(id),
+          getAssignedProjects(id)
+        ]);
+  
+        setProjects(projectsRes.data);
+        setAssigned(assignedRes.data);
+  
+      } catch (err) {
+        console.error("Error loading profile data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    if (id) {
+      fetchDashboardData();
+    }
+  }, [id]);
+
+  if (loading) return <p>Loading...</p>;
 
   return (
     <div className="dproj-page">
@@ -279,11 +265,10 @@ export default function DashboardProjects() {
           <div>
             <h1 className="dproj-page-title">Projects</h1>
             <p className="dproj-page-sub">
-              {owned.length} owned · {assigned.length} assigned
+              {projects.count} owned · {assigned.count} assigned
             </p>
           </div>
           <div className="dproj-header-actions">
-            {/* <button className="dproj-btn ghost">{Icon.export} Export</button> */}
             <button className="dproj-btn primary">{Icon.plus} New Project</button>
           </div>
         </div>
@@ -298,59 +283,43 @@ export default function DashboardProjects() {
               className="dproj-search"
               type="text"
               placeholder="Search projects…"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setOwnedPage(1); setAssignedPage(1); }}
             />
-          </div>
-
-          <div className="dproj-filter-btns">
-            {FILTERS.map((f) => (
-              <button
-                key={f}
-                className={`dproj-filter-btn${filter === f ? " active" : ""}`}
-                onClick={() => { setFilter(f); setOwnedPage(1); setAssignedPage(1); }}
-              >
-                {f}
-              </button>
-            ))}
           </div>
         </div>
 
         {/*  My Projects  */}
         <div className="dproj-section-head">
           <span className="dproj-section-title">My Projects</span>
-          <span className="dproj-section-badge">{owned.length}</span>
+          <span className="dproj-section-badge">{projects.count}</span>
           <span className="dproj-section-divider" />
         </div>
 
         <div className="dproj-grid">
-          {paginate(owned, ownedPage).length > 0
-            ? paginate(owned, ownedPage).map((p) => (
-                <ProjectCard key={p.id} project={p} onClick={handleProjectClick} />
+          {projects.count > 0
+            ? projects.projects.slice(0, 3).map((p) => (
+                <ProjectCard key={p._id} project={p} onClick={handleProjectClick} ownership={"owned"}/>
               ))
             : <div className="dproj-empty"><span className="dproj-empty-icon">📁</span>No projects match your search.</div>
           }
         </div>
-        <Pagination currentPage={ownedPage} totalPages={totalPages(owned)} onPageChange={setOwnedPage} />
 
         {/*  Assigned to Me  */}
         <div className="dproj-section-head" style={{ marginTop: "2.5rem" }}>
           <span className="dproj-section-title">Assigned to Me</span>
           <span className="dproj-section-badge" style={{ background: "rgba(167,139,250,0.12)", color: "#7c3aed" }}>
-            {assigned.length}
+            {assigned.count}
           </span>
           <span className="dproj-section-divider" />
         </div>
 
         <div className="dproj-grid">
-          {paginate(assigned, assignedPage).length > 0
-            ? paginate(assigned, assignedPage).map((p) => (
-                <ProjectCard key={p.id} project={p} onClick={handleProjectClick} />
+          {assigned.count > 0
+            ? assigned.projects.slice(0, 3).map((p) => (
+                <ProjectCard key={p._id} project={p} onClick={handleProjectClick} ownership={"assigned"} />
               ))
             : <div className="dproj-empty"><span className="dproj-empty-icon">🤝</span>No assigned projects match your search.</div>
           }
         </div>
-        <Pagination currentPage={assignedPage} totalPages={totalPages(assigned)} onPageChange={setAssignedPage} />
 
       </div>
     </div>
