@@ -23,8 +23,8 @@ async function getUserProjects(req, res) {
 
     const projects = await Project.find(query)
       .sort({ createdAt: -1 })
-      .populate("members.user", "avatarUrl")
-      .populate("creator", "firstName lastName");
+      .populate("members.user", "avatarUrl firstName lastName")
+      .populate("creator", "firstName lastName avatarUrl");
 
     const projectsWithStats = await Promise.all(
       projects.map(async (project) => {
