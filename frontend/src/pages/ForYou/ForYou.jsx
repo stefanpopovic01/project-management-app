@@ -340,8 +340,14 @@ export default function ForYou({ currentUser }) {
                 <button className="fy-quicklink-btn" onClick={() => navigate("/projects/1")}>
                   <div className="fy-quicklink-icon green">{Icon.task}</div>
                   <div>
-                    <div className="fy-quicklink-label">{projects.projects[0].title}</div>
-                    <div className="fy-quicklink-sub">Your most recent project</div>
+                    {projects.count > 0 && projects.projects.length > 0 ? (
+                      <>
+                        <div className="fy-quicklink-label">{projects.projects[0].title}</div>
+                        <div className="fy-quicklink-sub">Your most recent project</div>
+                      </>
+                    ) : (
+                      <div className="fy-quicklink-sub">No projects found</div>
+                    )}
                   </div>
                   <span className="fy-quicklink-arrow">{Icon.chevRight}</span>
                 </button>
