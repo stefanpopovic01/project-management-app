@@ -17,3 +17,7 @@ export const getAssignedProjects = (id, search = "", aLimit = "") => {
         }
     });
 };
+
+export const createProject = (projectData) => {
+    return api.post("/project", projectData);
+};
