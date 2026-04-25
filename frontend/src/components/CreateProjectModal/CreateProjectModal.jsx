@@ -1,21 +1,43 @@
-import { useState } from "react";
 import "./CreateProjectModal.css";
+import { useState } from "react";
 import { createPortal } from "react-dom";
+import { createProject } from "../../api/services/projectServices";
 
-export default function CreateProjectModal({ onClose }) {
-  const [inviteSearch, setInviteSearch] = useState("");
+export default function CreateProjectModal({ onProjectCreated, onClose }) {
 
-  const users = [
-    { id: 1, name: "Marko Petrović", username: "@marko" },
-    { id: 1, name: "Marko Petrović", username: "@marko" },
-    { id: 1, name: "Marko Petrović", username: "@marko" },
-    { id: 1, name: "Marko Petrović", username: "@marko" },
-    { id: 2, name: "Jovana Ilić", username: "@jovana" },
-    { id: 3, name: "Nikola Radović", username: "@nikola" },
-    { id: 4, name: "Sara Milenković", username: "@sara" },
-  ];
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleCreateProject = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await createProject({ title, description, deadline: selectedDate });
+
+      setSuccess(true);
+      setError("");
+      onProjectCreated?.();
+
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong..");
+      setSuccess(false);
+    }
+  };
+
+  if (success) {
+  
+  const timer = setTimeout(() => {
+    onClose();
+  }, 2000);
+
+  }
 
   return createPortal(
+
     <div className="cp-overlay" onClick={onClose}>
       <div
         className="cp-modal"
@@ -31,61 +53,17 @@ export default function CreateProjectModal({ onClose }) {
         <div className="cp-body">
           <div className="cp-field">
             <label>Project Name</label>
-            <input type="text" placeholder="Enter project name..." />
+            <input type="text" placeholder="Enter project name..." value={title} onChange={(e) => setTitle(e.target.value)}/>
           </div>
 
           <div className="cp-field">
             <label>Description</label>
-            <textarea placeholder="Project description..." />
+            <textarea placeholder="Project description..." value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
 
           <div className="cp-field">
             <label>Deadline</label>
-            <input type="date" />
-          </div>
-
-          <div className="cp-field">
-            <label>Short Description (optional)</label>
-            <input type="text" placeholder="Optional short summary..." />
-          </div>
-
-          <div className="cp-field">
-            <label>Invite Members</label>
-            <div className="cp-invite-wrapper">
-              <input
-                type="text"
-                placeholder="Search users..."
-                value={inviteSearch}
-                onChange={(e) => setInviteSearch(e.target.value)}
-              />
-
-              {inviteSearch && (
-                <div className="cp-invite-dropdown">
-                  {users
-                    .filter((user) =>
-                      user.name
-                        .toLowerCase()
-                        .includes(inviteSearch.toLowerCase())
-                    )
-                    .map((user) => (
-                      <div key={user.id} className="cp-invite-item">
-                        <div className="cp-invite-info">
-                          <div className="cp-avatar"></div>
-                          <div>
-                            <span className="cp-name">{user.name}</span>
-                            <span className="cp-username">
-                              {user.username}
-                            </span>
-                          </div>
-                        </div>
-                        <button className="cp-invite-btn">
-                          Invite
-                        </button>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </div>
+            <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)}/>
           </div>
         </div>
 
@@ -93,10 +71,14 @@ export default function CreateProjectModal({ onClose }) {
           <button className="cp-cancel" onClick={onClose}>
             Cancel
           </button>
-          <button className="cp-create">
+          <button className="cp-create" onClick={handleCreateProject}>
             <i className="fa-solid fa-plus"></i> Create Project
           </button>
         </div>
+
+        {success && <p className="cp-succes-msg">You've successfully created project.</p>}
+        {error && <p className="cp-error-msg">{error}</p>}
+
       </div>
     </div>,
     document.getElementById("modal-root")

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "./DashboardProjects.css";
 
+import CreateProjectModal from "../../components/CreateProjectModal/CreateProjectModal";
 import { getUserProjects, getAssignedProjects } from "../../api/services/projectServices";
 import { AuthContext } from "../../contex/authContext";
 import { useContext } from "react";
@@ -234,6 +235,16 @@ export default function DashboardProjects() {
   const [limit, setLimit] = useState(3);
   const [aLimit, setALimit] = useState(3);
 
+  const [createProject, setCreateProject] = useState(false);
+
+  const closeCreateProject = () => {
+    setCreateProject(!createProject);
+  }
+
+  const handleTest = () => {
+  console.log("test");
+};
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -244,7 +255,6 @@ export default function DashboardProjects() {
     };
   }, [searchTerm]);
 
-  useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
@@ -258,12 +268,13 @@ export default function DashboardProjects() {
         setAssigned(assignedRes.data);
   
       } catch (err) {
-        console.error("Error loading profile data:", err);
+        console.error("Error loading project data:", err);
       } finally {
         setLoading(false);
       }
     };
-  
+
+  useEffect(() => {
     if (id) {
       fetchDashboardData();
     }
@@ -290,7 +301,7 @@ export default function DashboardProjects() {
             </p>
           </div>
           <div className="dproj-header-actions">
-            <button className="dproj-btn primary">{Icon.plus} New Project</button>
+            <button className="dproj-btn primary" onClick={() => setCreateProject(!createProject)} >{Icon.plus} New Project</button>
           </div>
         </div>
 
@@ -383,6 +394,8 @@ export default function DashboardProjects() {
             </button>
           )}
         </div>
+
+        {createProject && ( <CreateProjectModal onProjectCreated={fetchDashboardData} onClose={closeCreateProject} />)}
 
       </div>
     </div>

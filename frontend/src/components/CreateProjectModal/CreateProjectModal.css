@@ -179,3 +179,31 @@
   border-radius: 8px;
   cursor: pointer;
 }
+
+.cp-succes-msg {
+  color: #065f46;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cp-error-msg {
+  color: #991b1b;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
