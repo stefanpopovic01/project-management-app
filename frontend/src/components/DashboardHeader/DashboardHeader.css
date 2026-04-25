@@ -85,10 +85,27 @@
 .dh-profile-logo{
     width: 10%;
     height: 45%;
-    border: 1px solid black;
+    border: 1px solid rgb(70, 70, 70);
     border-radius: 50%;
     position: relative;
     cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.header-initials{
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: rgb(24, 104, 219);
+}
+
+.header-initials.hiLarger{
+  font-size: 1.3rem;
+}
+
+.dh-profile-logo img{
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
 }
 
 /* PROFILE DROPDOWN */ 
@@ -125,8 +142,16 @@
     width: 20%;
     height: 70%;
     border-radius: 50%;
-    border: 1px solid black;
+    border: 1px solid rgb(101, 101, 101);
+    display: flex; align-items: center; justify-content: center;
 }
+
+.dh-dropdown-img img{
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
 
 .dh-dropdown-desc{
     width: 70%;

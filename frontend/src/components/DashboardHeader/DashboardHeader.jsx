@@ -1,10 +1,18 @@
-import { React, useState} from 'react';
+import { React, useState, useContext } from 'react';
 import './DashboardHeader.css'
+
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../contex/authContext';
 
 import logo from '../../assets/logo.png'
 import CreateProjectModal from '../CreateProjectModal/CreateProjectModal';
 
 function DashboardHeader() {
+
+const { user, logout } = useContext(AuthContext);
+
+const id = user.id;
+console.log("id", id);
 
 const [activeDropdown, setActiveDropdown] = useState(null);
 
@@ -26,6 +34,18 @@ const [createProject, setCreateProject] = useState(false);
 
 const onClose = () => {
   setCreateProject(!createProject);
+}
+
+const navigate = useNavigate();
+
+const navigateToProfile = () => {
+        navigate(`/dashboard-profile/${id}`);
+        setActiveDropdown(null);
+}
+
+const switchProfiles = () => {
+        navigate("/login");
+        logout();
 }
 
   return (
@@ -232,32 +252,51 @@ const onClose = () => {
                 </div>
                 )}
 
-                <i class="fa-solid fa-gear"></i>
-                <div className='dh-profile-logo' onClick={() => toggleDropdown("profile")}></div>
+                <i class="fa-solid fa-gear" onClick={() => navigate(`/dashboard-profile/${id}`)}></i>
+                <div
+                    className="dh-profile-logo"
+                    onClick={() => toggleDropdown("profile")}
+                    >
+                    {user.avatarUrl ? (
+                        <img src={user.avatarUrl} alt="user-logo" />
+                    ) : (
+                    <span className="header-initials">
+                    {(user.firstName?.[0] || "") + (user.lastName?.[0] || "")}
+                    </span>
+                    )}
+                </div>
                 {activeDropdown === "profile" && (
                     <div className='dh-profile-dropdown'>
                         <div className='dh-dropdown-profile'>
                             <div className='dh-dropdown-profile-frame'>
-                                <div className='dh-dropdown-img'></div>
+                                <div className="dh-dropdown-img">
+                                    {user.avatarUrl ? (
+                                        <img src={user.avatarUrl} alt="user-logo" />
+                                    ) : (
+                                        <span className="header-initials hiLarger">
+                                        {(user.firstName?.[0] || "") + (user.lastName?.[0] || "")}
+                                        </span>
+                                    )}
+                                </div>
                                 <div className='dh-dropdown-desc'>
-                                    <h3>Stefan Popovic</h3>
-                                    <p>stefanpopovicnew@gmail.com</p>
+                                    <h3>{user.firstName}{" "}{user.lastName}</h3>
+                                    <p>{user.email}</p>
                                 </div>
                             </div>
                         </div>
-                        <div className='dh-dropdown-profile-a'>
+                        <div className='dh-dropdown-profile-a' onClick={() => navigateToProfile()}>
                             <i class="fa-regular fa-user"></i>
                             <p>Profile</p>
                         </div>
-                        <div className='dh-dropdown-profile-a'>
+                        <div className='dh-dropdown-profile-a' onClick={() => navigateToProfile()}>
                             <i class="fa-solid fa-gear"></i>
                             <p>Account settings</p>
                         </div>
-                        <div className='dh-dropdown-profile-a'>
+                        <div className='dh-dropdown-profile-a' onClick={() => switchProfiles()}>
                             <i class="fa-solid fa-user"></i>
                             <p>Switch accouts</p>
                         </div>
-                        <div className='dh-dropdown-profile-a  dh-topline'>
+                        <div className='dh-dropdown-profile-a  dh-topline' onClick={() => switchProfiles()}>
                             <i class="fa-solid fa-arrow-right-from-bracket"></i>
                             <p>Logout</p>
                         </div>
