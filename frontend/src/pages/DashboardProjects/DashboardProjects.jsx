@@ -224,12 +224,15 @@ export default function DashboardProjects() {
   const { user: currentUser, updateUser } = useContext(AuthContext);
   const id = currentUser.id;
 
-  const [projects, setProjects] = useState({ count: 0, projects: [] });
-  const [assigned, setAssigned] = useState({ count: 0, projects: [] });
+  const [projects, setProjects] = useState({ count: 0, projects: [], totalCount: 0 });
+  const [assigned, setAssigned] = useState({ count: 0, projects: [], totalCount: 0 });
   const [loading, setLoading] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  const [limit, setLimit] = useState(3);
+  const [aLimit, setALimit] = useState(3);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -247,8 +250,8 @@ export default function DashboardProjects() {
         setLoading(true);
   
         const [projectsRes, assignedRes] = await Promise.all([
-          getUserProjects(id, debouncedSearchTerm),
-          getAssignedProjects(id, debouncedSearchTerm)
+          getUserProjects(id, debouncedSearchTerm, limit),
+          getAssignedProjects(id, debouncedSearchTerm, aLimit)
         ]);
   
         setProjects(projectsRes.data);
@@ -264,7 +267,7 @@ export default function DashboardProjects() {
     if (id) {
       fetchDashboardData();
     }
-  }, [id, debouncedSearchTerm]);
+  }, [id, debouncedSearchTerm, limit, aLimit]);
 
   if (loading && projects.projects.length === 0) {
     return (
@@ -283,7 +286,7 @@ export default function DashboardProjects() {
           <div>
             <h1 className="dproj-page-title">Projects</h1>
             <p className="dproj-page-sub">
-              {projects.count} owned · {assigned.count} assigned
+              {projects.totalCount} owned · {assigned.totalCount} assigned
             </p>
           </div>
           <div className="dproj-header-actions">
@@ -310,35 +313,75 @@ export default function DashboardProjects() {
         {/*  My Projects  */}
         <div className="dproj-section-head">
           <span className="dproj-section-title">My Projects</span>
-          <span className="dproj-section-badge">{projects.count}</span>
+          <span className="dproj-section-badge">{projects.totalCount}</span>
           <span className="dproj-section-divider" />
         </div>
 
         <div className="dproj-grid">
           {projects.count > 0
-            ? projects.projects.slice(0, 3).map((p) => (
+            ? projects.projects.map((p) => (
                 <ProjectCard key={p._id} project={p} onClick={handleProjectClick} ownership={"owned"}/>
               ))
             : <div className="dproj-empty"><span className="dproj-empty-icon">📁</span>No projects match your search.</div>
           }
         </div>
 
+        <div className="dashboard-projects-actions">
+          {projects.totalCount > limit && (
+            <button 
+              className="dashboard-projects-show-more" 
+              onClick={() => setLimit(prev => prev + 3)}
+            >
+              Show More
+            </button>
+          )}
+
+          {limit > 3 && (
+            <button 
+              className="dashboard-projects-show-more less" 
+              onClick={() => setLimit(prev => prev - 3)} 
+            >
+              Show Less
+            </button>
+          )}
+        </div>
+
         {/*  Assigned to Me  */}
         <div className="dproj-section-head" style={{ marginTop: "2.5rem" }}>
           <span className="dproj-section-title">Assigned to Me</span>
           <span className="dproj-section-badge" style={{ background: "rgba(167,139,250,0.12)", color: "#7c3aed" }}>
-            {assigned.count}
+            {assigned.totalCount}
           </span>
           <span className="dproj-section-divider" />
         </div>
 
         <div className="dproj-grid">
           {assigned.count > 0
-            ? assigned.projects.slice(0, 3).map((p) => (
+            ? assigned.projects.map((p) => (
                 <ProjectCard key={p._id} project={p} onClick={handleProjectClick} ownership={"assigned"} />
               ))
             : <div className="dproj-empty"><span className="dproj-empty-icon">🤝</span>No assigned projects match your search.</div>
           }
+        </div>
+
+        <div className="dashboard-projects-actions">
+          {assigned.totalCount > aLimit && (
+            <button 
+              className="dashboard-projects-show-more" 
+              onClick={() => setALimit(prev => prev + 3)}
+            >
+              Show More
+            </button>
+          )}
+
+          {aLimit > 3 && (
+            <button 
+              className="dashboard-projects-show-more less" 
+              onClick={() => setALimit(prev => prev - 3)} 
+            >
+              Show Less
+            </button>
+          )}
         </div>
 
       </div>
