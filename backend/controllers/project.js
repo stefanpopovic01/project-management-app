@@ -4,7 +4,7 @@ const Notification = require("../models/Notification");
 
 async function getUserProjects(req, res) {
   try {
-    const { search, status } = req.query;
+    const { search, status, limit } = req.query;
     
     const targetUserId = req.params.id || req.user.id;
 
@@ -21,8 +21,11 @@ async function getUserProjects(req, res) {
       query.status = status;
     }
 
+    const totalMatchingProjects = await Project.countDocuments(query);
+
     const projects = await Project.find(query)
       .sort({ createdAt: -1 })
+      .limit(limit ? parseInt(limit) : 0)
       .populate("members.user", "avatarUrl firstName lastName")
       .populate("creator", "firstName lastName avatarUrl");
 
@@ -43,7 +46,8 @@ async function getUserProjects(req, res) {
 
     return res.status(200).json({
       count: projectsWithStats.length,
-      projects: projectsWithStats
+      projects: projectsWithStats,
+      totalCount: totalMatchingProjects
     });
     
   } catch (err) {
@@ -256,7 +260,7 @@ async function removeMember(req, res) {
 
 async function getAssignedProjects(req, res) {
   try {
-    const { search, status } = req.query;
+    const { search, status, aLimit } = req.query;
     const userId = req.params.id || req.user.id;
 
     let query = {
@@ -276,8 +280,11 @@ async function getAssignedProjects(req, res) {
       query.status = status;
     }
 
+    const totalMatchingProjects = await Project.countDocuments(query);
+
     const projects = await Project.find(query)
       .sort({ createdAt: -1 })
+      .limit(aLimit ? parseInt(aLimit) : 0)
       .populate("creator", "firstName lastName email")
       .populate("members.user", "avatarUrl");
 
@@ -299,7 +306,8 @@ async function getAssignedProjects(req, res) {
 
     return res.status(200).json({
       count: projectsWithStats.length,
-      projects: projectsWithStats
+      projects: projectsWithStats,
+      totalCount: totalMatchingProjects
     });
 
   } catch (err) {
