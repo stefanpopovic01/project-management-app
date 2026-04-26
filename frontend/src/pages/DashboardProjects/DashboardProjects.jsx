@@ -241,10 +241,6 @@ export default function DashboardProjects() {
     setCreateProject(!createProject);
   }
 
-  const handleTest = () => {
-  console.log("test");
-};
-
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
