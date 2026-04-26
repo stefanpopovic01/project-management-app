@@ -1,18 +1,19 @@
-import { React, useState, useContext } from 'react';
+import { React, useState, useContext, useEffect } from 'react';
 import './DashboardHeader.css'
 
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contex/authContext';
+import { getNotifications } from '../../api/services/notificationServices';
 
 import logo from '../../assets/logo.png'
 import CreateProjectModal from '../CreateProjectModal/CreateProjectModal';
+import { getUsers } from '../../api/services/userServices';
 
 function DashboardHeader() {
 
 const { user, logout } = useContext(AuthContext);
 
 const id = user.id;
-console.log("id", id);
 
 const [activeDropdown, setActiveDropdown] = useState(null);
 
@@ -39,24 +40,82 @@ const onClose = () => {
 const navigate = useNavigate();
 
 const navigateToProfile = () => {
-        navigate(`/dashboard-profile/${id}`);
-        setActiveDropdown(null);
+    navigate(`/dashboard-profile/${id}`);
+    setActiveDropdown(null);
 }
 
 const switchProfiles = () => {
-        navigate("/login");
-        logout();
+    navigate("/login");
+    logout();
 }
+
+const [notifications, setNotifications] = useState([]);
+const [users, setUsers] = useState([]);
+const [searchTerm, setSearchTerm] = useState("");
+const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+const [loading, setLoading] = useState(false);
+
+const handleSearchInput = (e) => {
+  const value = e.target.value;
+  setSearchTerm(value);
+
+  if (value.trim().length > 0) {
+    setActiveDropdown("search");
+  } else {
+    setActiveDropdown(null);
+  }
+};
+
+useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+}, [searchTerm]);
+
+
+const fetchNavbarData = async () => {
+    try {
+      setLoading(true);
+
+      const [notificationRes, userRes] = await Promise.all([
+        getNotifications(),
+        getUsers(debouncedSearchTerm)
+      ]);
+
+      setNotifications(notificationRes.data);
+      setUsers(userRes.data.users);
+
+    } catch (err) {
+      console.error("Error loading header data:", err);
+    } finally {
+      setLoading(false);
+    }
+};
+
+useEffect(() => {
+    if (id) {
+      fetchNavbarData();
+    }
+}, [debouncedSearchTerm] );
+
+const notificationDropdown = () => {
+    toggleDropdown("notifications");
+    fetchNavbarData();
+};
 
   return (
     <div className="dashboard-h-container">
                  {createProject && (<CreateProjectModal onClose={onClose}/>)}
         <div className='dashboard-h-frame'>
             <div className='dashboard-h-logo'>
-                <img src={logo} alt='logo'/>
+                <img src={logo} alt='logo' onClick={() => navigate("/")}/>
             </div>
             <div className='dashboard-h-search'>
-                <input type='text' placeholder='Search' onChange={handleSearchChange}></input>
+                <input type='text' placeholder='Search' value={searchTerm} onChange={(e) => handleSearchInput(e)}></input>
                 <button onClick={onClose}><i class="fa-solid fa-plus"></i> Create</button>
                 <i class="fa-brands fa-sistrix"></i>
 
@@ -64,135 +123,73 @@ const switchProfiles = () => {
             <div className='db-search-dropdown'>
                 <div className="db-search-container">
 
-                    <div className="db-search-user">
-                    <div className="db-search-avatar">
-                        <img src="#" alt="profile" />
-                    </div>
-                    <div className="db-search-info">
-                        <span className="db-search-name">Marko Petrović</span>
-                        <span className="db-search-username">@markop</span>
-                    </div>
-                    </div>
+            {users.map((userItem, index) => (
+            <div className="db-search-user" key={index} onClick={() => {
+                navigate(`/dashboard-profile/${userItem._id}`);
+                setActiveDropdown(null);
+                }}>
+                <div className="db-search-avatar">
+                {userItem.avatarUrl ? (
+                    <img src={userItem.avatarUrl} alt="profile" />
+                ) : (
+                    <span className="header-initials hiSearch">
+                    {(userItem.firstName?.[0].toUpperCase() || "") +
+                        (userItem.lastName?.[0].toUpperCase() || "")}
+                    </span>
+                )}
+                </div>
 
-                    <div className="db-search-user">
-                    <div className="db-search-avatar">
-                        <img src="#" alt="profile" />
-                    </div>
-                    <div className="db-search-info">
-                        <span className="db-search-name">Ana Jovanović</span>
-                        <span className="db-search-username">@anaj</span>
-                    </div>
-                    </div>
-
-                    <div className="db-search-user">
-                    <div className="db-search-avatar">
-                        <img src="#" alt="profile" />
-                    </div>
-                    <div className="db-search-info">
-                        <span className="db-search-name">Nikola Ilić</span>
-                        <span className="db-search-username">@nikolai</span>
-                    </div>
-                    </div>
-
-                    <div className="db-search-user">
-                    <div className="db-search-avatar">
-                        <img src="#" alt="profile" />
-                    </div>
-                    <div className="db-search-info">
-                        <span className="db-search-name">Jelena Marković</span>
-                        <span className="db-search-username">@jelena.m</span>
-                    </div>
-                    </div>
-
-                    <div className="db-search-user">
-                    <div className="db-search-avatar">
-                        <img src="#" alt="profile" />
-                    </div>
-                    <div className="db-search-info">
-                        <span className="db-search-name">Stefan Kovačević</span>
-                        <span className="db-search-username">@stefank</span>
-                    </div>
-                    </div>
-
-                    <div className="db-search-user">
-                    <div className="db-search-avatar">
-                        <img src="#" alt="profile" />
-                    </div>
-                    <div className="db-search-info">
-                        <span className="db-search-name">Milica Stojanović</span>
-                        <span className="db-search-username">@milica_s</span>
-                    </div>
-                    </div>
+                <div className="db-search-info">
+                <span className="db-search-name">
+                    {(userItem.firstName || "") + " " + (userItem.lastName || "")}
+                </span>
+                <span className="db-search-username">
+                    {userItem.email || ""}
+                </span>
+                </div>
+            </div>
+            ))}
                 </div>
             </div>
             )}
             </div>
             <div className='dashboard-h-profile'>
-                <i class="fa-regular fa-bell" onClick={() => toggleDropdown("notifications")}></i>
+                <i class="fa-regular fa-bell" onClick={() => notificationDropdown()}></i>
                 {activeDropdown === "notifications" && (
-                <div className="dh-notif-container">
+                    <div className="dh-notif-container">
                     <div className="dh-notif-header">
                         <span>Notifications</span>
                         <i className="fa-solid fa-bell"></i>
                     </div>
+
                     <div className="dh-notif-list">
-                        <div className="dh-notif-item">
-                        <div className="dh-notif-avatar">
-                            <i className="fa-solid fa-user"></i>
-                        </div>
-                        <div className="dh-notif-content">
+                        {notifications.slice(0, 10).map((notif, index) => (
+                        <div className="dh-notif-item" key={index}>
+                            <div className="dh-notif-avatar">
+                            {notif.actor?.avatarUrl ? (
+                                <img src={notif.actor.avatarUrl} alt="user-avatar" />
+                            ) : (
+                                <span className="header-initials">
+                                {(notif.actor?.firstName?.[0].toUpperCase() || "") +
+                                    (notif.actor?.lastName?.[0].toUpperCase() || "")}
+                                </span>
+                            )}
+                            </div>
+
+                            <div className="dh-notif-content">
                             <p className="dh-notif-text">
-                            <strong>Marko Petrović</strong> assigned you a task
+                                {notif.message}
                             </p>
-                            <span className="dh-notif-desc">
-                            Design dashboard wireframes
-                            </span>
+
+                            </div>
                         </div>
-                        </div>
-                        <div className="dh-notif-item">
-                        <div className="dh-notif-avatar">
-                            <i className="fa-solid fa-user"></i>
-                        </div>
-                        <div className="dh-notif-content">
-                            <p className="dh-notif-text">
-                            <strong>Ana Jovanović</strong> invited you to a project
-                            </p>
-                            <span className="dh-notif-desc">
-                            Project: Mobile Banking App
-                            </span>
-                        </div>
-                        </div>
-                        <div className="dh-notif-item">
-                        <div className="dh-notif-avatar">
-                            <i className="fa-solid fa-user"></i>
-                        </div>
-                        <div className="dh-notif-content">
-                            <p className="dh-notif-text">
-                            <strong>Nikola Ilić</strong> assigned you a task
-                            </p>
-                            <span className="dh-notif-desc">
-                            Fix authentication bug
-                            </span>
-                        </div>
-                        </div>
-                        <div className="dh-notif-item">
-                        <div className="dh-notif-avatar">
-                            <i className="fa-solid fa-user"></i>
-                        </div>
-                        <div className="dh-notif-content">
-                            <p className="dh-notif-text">
-                            <strong>Jelena Marković</strong> invited you to a project
-                            </p>
-                            <span className="dh-notif-desc">
-                            Project: CRM Redesign
-                            </span>
-                        </div>
-                        </div>
+                        ))}
                     </div>
+
                     <div className="dh-notif-footer">
                         <a href="#">View all notifications</a>
                     </div>
-                </div>
+                    </div>
                 )}
 
                 <i class="fa-regular fa-circle-question" onClick={() => toggleDropdown("help")}></i>
@@ -261,7 +258,7 @@ const switchProfiles = () => {
                         <img src={user.avatarUrl} alt="user-logo" />
                     ) : (
                     <span className="header-initials">
-                    {(user.firstName?.[0] || "") + (user.lastName?.[0] || "")}
+                    {(user.firstName?.[0].toUpperCase() || "") + (user.lastName?.[0].toUpperCase() || "")}
                     </span>
                     )}
                 </div>
@@ -274,7 +271,7 @@ const switchProfiles = () => {
                                         <img src={user.avatarUrl} alt="user-logo" />
                                     ) : (
                                         <span className="header-initials hiLarger">
-                                        {(user.firstName?.[0] || "") + (user.lastName?.[0] || "")}
+                                        {(user.firstName?.[0].toUpperCase() || "") + (user.lastName?.[0].toUpperCase() || "")}
                                         </span>
                                     )}
                                 </div>
