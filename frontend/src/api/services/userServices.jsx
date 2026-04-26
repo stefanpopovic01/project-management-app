@@ -23,3 +23,11 @@ export const follow = (id) => {
 export const unfollow = (id) => {
     return api.patch(`/user/unfollow/${id}`);
 }
+
+export const getUsers = (search = "") => {
+    return api.get(`/user`, {
+        params: { 
+            search
+        }
+    });
+};
