@@ -112,6 +112,7 @@
 
 .dh-sidebar-recent {
   margin-top: 2rem;
+  display: flex; flex-direction: column; gap: 5px;
 }
 
 .dh-sidebar-section-title {
@@ -130,6 +131,7 @@
   background: #f7f8fa;
   cursor: pointer;
   transition: background 0.2s ease;
+  max-height: 25%;
 }
 
 .dh-sidebar-project:hover {
@@ -138,6 +140,7 @@
 
 .dh-sidebar-project-icon {
   width: 36px;
+  min-height: 36px; min-height: 36px;
   height: 36px;
   border-radius: 8px;
   background: #e3e8f5;
@@ -155,8 +158,8 @@
 }
 
 .dh-sidebar-project-name {
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
   color: #1f1f23;
 }
 
