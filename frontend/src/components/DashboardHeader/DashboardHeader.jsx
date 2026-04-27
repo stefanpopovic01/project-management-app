@@ -158,7 +158,7 @@ const notificationDropdown = () => {
                 {activeDropdown === "notifications" && (
                     <div className="dh-notif-container">
                     <div className="dh-notif-header">
-                        <span>Notifications</span>
+                        <span>Recent notifications</span>
                         <i className="fa-solid fa-bell"></i>
                     </div>
 
@@ -187,7 +187,7 @@ const notificationDropdown = () => {
                     </div>
 
                     <div className="dh-notif-footer">
-                        <a href="#">View all notifications</a>
+                        {/* <a href="#">View all notifications</a> */}
                     </div>
                     </div>
                 )}
