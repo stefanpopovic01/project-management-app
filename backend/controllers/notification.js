@@ -4,7 +4,14 @@ async function getNotifications(req, res) {
   try {
     const notifications = await Notification.find({ recipient: req.user.id })
       .populate("actor", "firstName lastName avatarUrl")
-      .populate("project", "title")
+      .populate({
+        path: "project",
+        select: "title members",
+        populate: {
+          path: "members.user members.invitedBy",
+          select: "firstName lastName avatarUrl"
+        }
+      })
       .sort({ createdAt: -1 });
 
     res.status(200).json(notifications);
