@@ -69,6 +69,7 @@
 .sn-content {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .sn-title {
@@ -76,6 +77,7 @@
   font-weight: 500;
   color: #2f2f33;
   margin-bottom: 4px;
+  margin-top: 0px;
 }
 
 .sn-title strong {
@@ -100,6 +102,7 @@
 /* ACTION BUTTONS */
 
 .sn-actions {
+  padding-top: 0.8rem;
   display: flex;
   gap: 0.5rem;
 }
@@ -133,3 +136,66 @@
 .sn-decline:hover {
   background: #e5e7eb;
 }
+
+.sn-mark-read{
+  text-align: right;
+  font-size: 0.7rem;
+  margin-top: 0px;
+    color: #444;
+    width: 100%;
+    cursor: pointer;
+}
+
+.sn-mark-read.all{
+  text-align: center;
+  margin-bottom: 0px;
+}
+
+.sn-mark-read:hover{
+  color: rgb(24, 104, 219);
+}
+
+
+.sn-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  position: absolute;
+  top: 14%;
+  right: 15%;
+}
+
+.sn-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgb(24, 104, 219);
+  border-top: 3px solid rgb(162, 178, 201);
+  border-radius: 50%;
+  animation: sn-spin 0.8s linear infinite;
+}
+
+.sn-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  color: #888;
+  gap: 10px;
+}
+
+.sn-empty p{
+  color: rgb(120, 120, 120);
+  font-size: 0.9rem;
+}
+
+.sn-empty i {
+  font-size: 20px;
+}
+
+@keyframes sn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}  
