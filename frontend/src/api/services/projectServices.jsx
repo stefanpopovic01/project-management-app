@@ -21,3 +21,10 @@ export const getAssignedProjects = (id, search = "", aLimit = "") => {
 export const createProject = (projectData) => {
     return api.post("/project", projectData);
 };
+
+export const respondInvite = (projectId, action) => {
+  return api.patch("/project/respond-invite", {
+    projectId,
+    action
+  });
+};
