@@ -9,6 +9,7 @@ async function getProjectTasks(req, res) {
     const tasks = await Task.find({
       project: projectId
     })
+    .populate("assignedTo", "firstName lastName email avatarUrl")
     .sort({ position: 1 });
 
     return res.status(200).json({
@@ -163,7 +164,8 @@ async function updateTask(req, res) {
 
 async function updateTaskStatus(req, res) {
   try {
-    const { status, position } = req.body;
+    // const { status, position } = req.body;
+    const { status } = req.body;
     const task = await Task.findById(req.params.id);
 
     if (!task) return res.status(404).json({ message: "Task not found." });
@@ -178,7 +180,7 @@ async function updateTaskStatus(req, res) {
     const oldStatus = task.status;
 
     if (status) task.status = status;
-    if (position !== undefined) task.position = position;
+    // if (position !== undefined) task.position = position;
 
     await task.save();
 
