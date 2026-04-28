@@ -7,7 +7,7 @@ import { getProject } from "../../api/services/projectServices";
 import { getProjectTasks } from "../../api/services/taskServices";
 import { getTask } from "../../api/services/taskServices";
 import { AuthContext } from "../../contex/authContext";
-import { updateTaskStatus } from "../../api/services/taskServices";
+import { updateTaskStatus, updateChecklistItem } from "../../api/services/taskServices";
 import { addComment } from "../../api/services/taskServices";
 
 const Icon = {
@@ -68,6 +68,10 @@ function useToast() {
   return { show, msg, fire };
 }
 
+
+
+
+
 function TaskDetailDrawer({ task, colLabel, isOpen, onClose, currentUser }) {
   const [comment,  setComment]  = useState("");
   const [checks,   setChecks]   = useState([]);
@@ -81,11 +85,29 @@ function TaskDetailDrawer({ task, colLabel, isOpen, onClose, currentUser }) {
     setComment("");
   }, [task?.id]);
 
-  const toggleCheck = (id) =>
-    setChecks(prev => prev.map(c => c.id === id ? { ...c, done: !c.done } : c));
+  const toggleCheck = async (id) => {
+    const current = checks.find(c => c.id === id);
+    if (!current) return;
 
+    const newDone = !current.done;
 
+    setChecks(prev =>
+      prev.map(c =>
+        c.id === id ? { ...c, done: newDone } : c
+      )
+    );
 
+  try {
+    await updateChecklistItem(task.id, id, newDone);
+  } catch (err) {
+    console.error(err);
+    setChecks(prev =>
+      prev.map(c =>
+        c.id === id ? { ...c, done: current.done } : c
+      )
+    );
+  }
+};
 
 const sendComment = async () => {
   if (!comment.trim()) return;
@@ -104,22 +126,15 @@ const sendComment = async () => {
     text
   };
 
-  // 1. optimistic UI update
   setComments(prev => [...prev, newComment]);
   setComment("");
 
-  // 2. backend call
   try {
     await addComment(taskId, text);
   } catch (err) {
     console.error(err);
-
-    // optional: rollback (simple version)
-    // setComments(prev => prev.slice(0, -1));
   }
 };
-
-
 
   const due = task ? fmtDate(task.due) : null;
   const doneCount = checks.filter(c => c.done).length;
@@ -138,7 +153,6 @@ const sendComment = async () => {
         </div>
 
         <div className="dsp-drawer-body">
-          {/* Details */}
           <div className="dsp-detail-section">
             <div className="dsp-dlabel">Details</div>
             <div className="dsp-detail-row">
@@ -172,13 +186,11 @@ const sendComment = async () => {
             )}
           </div>
 
-          {/* Description */}
           <div className="dsp-detail-section">
             <div className="dsp-dlabel">Description</div>
             <p className="dsp-drawer-desc">{task.description}</p>
           </div>
 
-          {/* Checklist */}
           {checks.length > 0 && (
             <div className="dsp-detail-section">
               <div className="dsp-dlabel">Checklist — {doneCount}/{checks.length}</div>
@@ -193,7 +205,6 @@ const sendComment = async () => {
             </div>
           )}
 
-          {/* Comments */}
           <div className="dsp-detail-section">
             <div className="dsp-dlabel">Comments ({comments.length})</div>
             {comments.length > 0 && (
@@ -232,6 +243,8 @@ const sendComment = async () => {
     </>
   );
 }
+
+
 
 function AddTaskDrawer({ isOpen, onClose, onAdd, defaultCol, members }) {
   const EMPTY = { title: "", description: "", priority: "medium", due: "", checklist: [] };
