@@ -93,7 +93,7 @@ async function createTask(req, res) {
   try {
     const { 
       title, description, project, assignedTo, 
-      priority, dueDate, tags = [], checklist = [], comments = [] 
+      priority, dueDate, status, tags = [], checklist = [], comments = [] 
     } = req.body;
 
     const projectData = await Project.findById(project);
@@ -112,6 +112,7 @@ async function createTask(req, res) {
       assignedTo: assignedTo || null,
       priority,
       dueDate,
+      status,
       tags,
       createdBy: req.user.id,
       checklist,
