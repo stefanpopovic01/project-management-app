@@ -1,14 +1,13 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect, useContext } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import "./DashboardSingleProject.css";
-import { ALL_PROJECTS } from "../../pages/DashboardProjects/DashboardProjects";
-import { useContext } from "react";
-import { getProject, updateProject, removeProjectMember } from "../../api/services/projectServices";
-import { getProjectTasks } from "../../api/services/taskServices";
-import { getTask } from "../../api/services/taskServices";
+
+import { getProject, updateProject, removeProjectMember, invite } from "../../api/services/projectServices";
+import { getTask, createTask, getProjectTasks } from "../../api/services/taskServices";
+import { updateTaskStatus, updateChecklistItem, addComment} from "../../api/services/taskServices";
+import { getUsers } from "../../api/services/userServices";
 import { AuthContext } from "../../contex/authContext";
-import { updateTaskStatus, updateChecklistItem } from "../../api/services/taskServices";
-import { addComment } from "../../api/services/taskServices";
+
 
 const Icon = {
   back: (<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="13 5 7 10 13 15" /></svg>),
@@ -27,8 +26,6 @@ const Icon = {
   mail: (<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="2" y="4" width="16" height="12" rx="2" /><path d="M2 7l8 5 8-5" /></svg>),
   task: (<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="3" width="14" height="14" rx="2" /><polyline points="7 10 9 12 13 8" /></svg>),
 };
-
-const CURRENT_USER = "Alex Morrison";
 
 const COLUMNS = [
   { id: "planned",  label: "Planned",     dotClass: "planned" },
@@ -67,10 +64,6 @@ function useToast() {
   useEffect(() => () => clearTimeout(timer.current), []);
   return { show, msg, fire };
 }
-
-
-
-
 
 function TaskDetailDrawer({ task, colLabel, isOpen, onClose, currentUser }) {
   const [comment,  setComment]  = useState("");
@@ -244,21 +237,21 @@ const sendComment = async () => {
   );
 }
 
-
-
-function AddTaskDrawer({ isOpen, onClose, onAdd, defaultCol, members }) {
-  const EMPTY = { title: "", description: "", priority: "medium", due: "", checklist: [] };
-  const [form,       setForm]      = useState(EMPTY);
-  const [col,        setCol]       = useState(defaultCol || "planned");
-  const [checkInput, setCheckInput] = useState("");
-  const [saving,     setSaving]    = useState(false);
+function AddTaskDrawer({ isOpen, onClose, onAdd, defaultCol, members, projectId }) {
+  const EMPTY = { title: "", description: "", priority: "medium", due: "", checklist: [], tags: [], assigneeId: members?.[0]?.user?._id || null };
+  const [form,        setForm]       = useState(EMPTY);
+  const [col,         setCol]        = useState(defaultCol || "planned");
+  const [checkInput,  setCheckInput] = useState("");
+  const [tagInput,    setTagInput]   = useState("");
+  const [saving,      setSaving]     = useState(false);
   const titleRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
-      setForm(EMPTY);
+      setForm({ ...EMPTY, assigneeId: members?.[0]?.user?._id || null });
       setCol(defaultCol || "planned");
       setCheckInput("");
+      setTagInput("");
       setTimeout(() => titleRef.current?.focus(), 340);
     }
   }, [isOpen, defaultCol]);
@@ -273,31 +266,80 @@ function AddTaskDrawer({ isOpen, onClose, onAdd, defaultCol, members }) {
 
   const addCheck = () => {
     if (!checkInput.trim()) return;
-    setForm(prev => ({ ...prev, checklist: [...prev.checklist, { id: `nc-${Date.now()}`, text: checkInput.trim(), done: false }] }));
+    setForm(prev => ({
+      ...prev,
+      checklist: [...prev.checklist, { id: `nc-${Date.now()}`, text: checkInput.trim(), done: false }],
+    }));
     setCheckInput("");
   };
 
   const removeCheck = (id) =>
     setForm(prev => ({ ...prev, checklist: prev.checklist.filter(c => c.id !== id) }));
 
+  const addTag = () => {
+    const t = tagInput.trim();
+    if (!t || form.tags.includes(t)) return;
+    setForm(prev => ({ ...prev, tags: [...prev.tags, t] }));
+    setTagInput("");
+  };
+
+  const removeTag = (tag) =>
+    setForm(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }));
+
+  const getMemberDisplay = (member) => {
+    const user = member?.user;
+    const firstName = user?.firstName || "";
+    const lastName  = user?.lastName  || "";
+    const avatarUrl = user?.avatarUrl  || "";
+    const initials  = `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "?";
+    const name      = [firstName, lastName].filter(Boolean).join(" ") || user?.email || "Unknown";
+    return { avatarUrl, initials, name, id: user?._id };
+  };
+
   const handleSave = async () => {
     if (!form.title.trim()) return;
     setSaving(true);
-    await new Promise(r => setTimeout(r, 700));
-    onAdd({
-      id: `t-${Date.now()}`,
-      col,
-      title: form.title.trim(),
-      description: form.description.trim(),
-      priority: form.priority,
-      assignee: members[0],
-      tags: [],
-      due: form.due || null,
-      checklist: form.checklist,
-      comments: [],
-    });
-    setSaving(false);
-    onClose();
+    try {
+      const payload = {
+        title:       form.title.trim(),
+        description: form.description.trim(),
+        project:     projectId,
+        assignedTo:  form.assigneeId || null,
+        priority:    form.priority,
+        dueDate:     form.due || null,
+        status:      col,
+        tags:        form.tags,
+        checklist:   form.checklist,
+        comments:    [],
+      };
+
+      const response = await createTask(payload);
+      const task = response.data.task;
+
+      const selectedMember =
+        members?.find(m => m.user?._id === form.assigneeId) || members?.[0];
+
+      const selectedUser = selectedMember?.user || null;
+      
+      onAdd({
+        _id:          task._id,
+        status:      task.status,
+        title:       task.title,
+        description: task.description,
+        priority:    task.priority,
+        assignedTo:  selectedUser,
+        tags:        task.tags,
+        dueDate:         task.dueDate || null,
+        checklist:   task.checklist,
+        comments:    [],
+      });
+
+      onClose();
+    } catch (err) {
+      console.error("Failed to create task:", err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -313,7 +355,6 @@ function AddTaskDrawer({ isOpen, onClose, onAdd, defaultCol, members }) {
         </div>
 
         <div className="dsp-drawer-body">
-          {/* Column selector */}
           <div className="dsp-field">
             <label className="dsp-field-label">Add to column</label>
             <div className="dsp-role-row">
@@ -325,19 +366,16 @@ function AddTaskDrawer({ isOpen, onClose, onAdd, defaultCol, members }) {
             </div>
           </div>
 
-          {/* Title */}
           <div className="dsp-field">
             <label className="dsp-field-label" htmlFor="at-title">Title <span style={{ color: "#dc2626" }}>*</span></label>
             <input ref={titleRef} id="at-title" className="dsp-input" placeholder="e.g. Design login screen" value={form.title} onChange={set("title")} maxLength={120} />
           </div>
 
-          {/* Description */}
           <div className="dsp-field">
             <label className="dsp-field-label" htmlFor="at-desc">Description</label>
             <textarea id="at-desc" className="dsp-textarea" placeholder="What needs to be done? Include context, acceptance criteria, links…" value={form.description} onChange={set("description")} rows={4} />
           </div>
 
-          {/* Priority */}
           <div className="dsp-field">
             <label className="dsp-field-label">Priority</label>
             <div className="dsp-priority-group">
@@ -349,13 +387,79 @@ function AddTaskDrawer({ isOpen, onClose, onAdd, defaultCol, members }) {
             </div>
           </div>
 
-          {/* Due date */}
           <div className="dsp-field">
             <label className="dsp-field-label" htmlFor="at-due">Due date</label>
             <input id="at-due" className="dsp-input" type="date" value={form.due} onChange={set("due")} />
           </div>
 
-          {/* Checklist */}
+          {members?.length > 0 && (
+            <div className="dsp-field">
+              <label className="dsp-field-label">Assignee</label>
+              <div className="dsp-members-row">
+                {members.map((member) => {
+                  const { avatarUrl, initials, name, id } = getMemberDisplay(member);
+                  const isSelected = form.assigneeId === id;
+                  return (
+                    <button
+                      key={member._id}
+                      title={name}
+                      className={`dsp-member-btn${isSelected ? " selected" : ""}`}
+                      onClick={() => setForm(prev => ({ ...prev, assigneeId: id }))}
+                    >
+                      {avatarUrl ? (
+                        <img
+                          src={avatarUrl}
+                          alt={name}
+                          className="dsp-member-avatar"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            e.currentTarget.nextSibling.style.display = "flex";
+                          }}
+                        />
+                      ) : null}
+                      <span
+                        className="dsp-member-initials"
+                        style={{ display: avatarUrl ? "none" : "flex" }}
+                      >
+                        {initials}
+                      </span>
+                      <span className="dsp-member-name">{name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="dsp-field">
+            <label className="dsp-field-label">Tags</label>
+            {form.tags.length > 0 && (
+              <div className="dsp-tags-row">
+                {form.tags.map(tag => (
+                  <span key={tag} className="dsp-tag-pill">
+                    {tag}
+                    <button className="dsp-tag-remove" onClick={() => removeTag(tag)} aria-label={`Remove tag ${tag}`}>
+                      {Icon.close}
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="dsp-add-check-row">
+              <input
+                className="dsp-add-check-input"
+                placeholder="Add tag…"
+                value={tagInput}
+                onChange={e => setTagInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && addTag()}
+                maxLength={40}
+              />
+              <button className="dsp-icon-btn" onClick={addTag} disabled={!tagInput.trim()}>
+                {Icon.plus}
+              </button>
+            </div>
+          </div>
+
           <div className="dsp-field">
             <label className="dsp-field-label">Checklist</label>
             {form.checklist.length > 0 && (
@@ -389,55 +493,80 @@ function AddTaskDrawer({ isOpen, onClose, onAdd, defaultCol, members }) {
   );
 }
 
-function InviteDrawer({ isOpen, onClose, projectTitle, onInvite }) {
-  const [emails,   setEmails]   = useState([]);
-  const [input,    setInput]    = useState("");
-  const [role,     setRole]     = useState("Member");
-  const [saving,   setSaving]   = useState(false);
-  const inputRef = useRef(null);
+function InviteDrawer({ isOpen, onClose, projectTitle, projectId, onInvite }) {
+  const [search,        setSearch]        = useState("");
+  const [results,       setResults]       = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [expiresAt,     setExpiresAt]     = useState("");
+  const [searching,     setSearching]     = useState(false);
+  const [saving,        setSaving]        = useState(false);
+  const inputRef  = useRef(null);
+  const debounceRef = useRef(null);
 
   useEffect(() => {
-    if (isOpen) { setEmails([]); setInput(""); setRole("Member"); setTimeout(() => inputRef.current?.focus(), 340); }
+    if (isOpen) {
+      setSearch(""); setResults([]); setSelectedUsers([]); setExpiresAt("");
+      setTimeout(() => inputRef.current?.focus(), 340);
+    }
   }, [isOpen]);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape" && isOpen) onClose(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
-  const addEmail = () => {
-    const val = input.trim();
-    if (!val || emails.find(e => e.value === val)) return;
-    setEmails(prev => [...prev, { value: val, valid: isValidEmail(val) }]);
-    setInput("");
+  const handleSearchChange = useCallback((val) => {
+    setSearch(val);
+    clearTimeout(debounceRef.current);
+    if (val.length < 2) { setResults([]); return; }
+    setSearching(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await getUsers(val);
+        setResults(res.data.users || []);
+      } catch {
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 400);
+  }, []);
+
+  const toggleUser = (user) => {
+    setSelectedUsers(prev =>
+      prev.find(u => u._id === user._id)
+        ? prev.filter(u => u._id !== user._id)
+        : [...prev, user]
+    );
   };
 
-  const removeEmail = (val) => setEmails(prev => prev.filter(e => e.value !== val));
+  const removeUser = (id) => setSelectedUsers(prev => prev.filter(u => u._id !== id));
 
-  const onKeyDown = (e) => {
-    if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addEmail(); }
-    if (e.key === "Backspace" && !input && emails.length) {
-      setEmails(prev => prev.slice(0, -1));
-    }
-  };
-
-  const validCount  = emails.filter(e => e.valid).length;
-  const hasInvalid  = emails.some(e => !e.valid);
+  const getInitials = (u) =>
+    ((u.firstName?.[0] ?? "") + (u.lastName?.[0] ?? "")).toUpperCase();
 
   const handleSend = async () => {
-    if (validCount === 0) return;
+    if (!selectedUsers.length) return;
     setSaving(true);
-    await new Promise(r => setTimeout(r, 900));
-    onInvite?.(emails.filter(e => e.valid).map(e => e.value), role);
-    setSaving(false);
-    onClose();
+    try {
+      await Promise.all(
+        selectedUsers.map(u =>
+          invite(projectId, u._id, expiresAt || null)
+        )
+      );
+      onInvite?.(selectedUsers);
+    } finally {
+      setSaving(false);
+      onClose();
+    }
   };
 
   return (
     <>
       <div className={`dsp-overlay${isOpen ? " open" : ""}`} onClick={onClose} />
       <aside className={`dsp-drawer${isOpen ? " open" : ""}`} role="dialog" aria-modal="true" aria-label="Invite people">
+
         <div className="dsp-drawer-header">
           <div className="dsp-drawer-title-wrap">
             <div className="dsp-drawer-title">Invite People</div>
@@ -447,54 +576,107 @@ function InviteDrawer({ isOpen, onClose, projectTitle, onInvite }) {
         </div>
 
         <div className="dsp-drawer-body">
-          {/* Email input */}
+
           <div className="dsp-field">
-            <label className="dsp-field-label">Email addresses</label>
-            <div className="dsp-email-tags-wrap" onClick={() => inputRef.current?.focus()}>
-              {emails.map(e => (
-                <span key={e.value} className={`dsp-email-tag${e.valid ? "" : " invalid"}`}>
-                  {e.value}
-                  <button className="dsp-email-tag-remove" onClick={() => removeEmail(e.value)}>{Icon.close}</button>
-                </span>
-              ))}
+            <label className="dsp-field-label">Search users</label>
+            <div className="dsp-search-wrap">
+              <span className="dsp-search-icon">{Icon.search}</span>
               <input
                 ref={inputRef}
-                className="dsp-email-input"
+                className="dsp-search-input"
                 type="text"
-                placeholder={emails.length === 0 ? "name@company.com" : "Add another…"}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={onKeyDown}
-                onBlur={addEmail}
+                placeholder="Search by name or email…"
+                value={search}
+                onChange={e => handleSearchChange(e.target.value)}
               />
+              {searching && <span className="dsp-search-spinner" />}
             </div>
-            <p className="dsp-email-hint">Separate multiple addresses with Enter or comma{hasInvalid ? " · Some addresses look invalid" : ""}</p>
+
+            {results.length > 0 && (
+              <div className="dsp-user-results">
+                {results.map(u => {
+                  const isSelected = !!selectedUsers.find(s => s._id === u._id);
+                  return (
+                    <div
+                      key={u._id}
+                      className={`dsp-user-item${isSelected ? " selected" : ""}`}
+                      onClick={() => toggleUser(u)}
+                    >
+                      <div className="dsp-avatar">
+                        {u.avatarUrl
+                          ? <img src={u.avatarUrl} alt={getInitials(u)} />
+                          : getInitials(u)
+                        }
+                      </div>
+                      <div className="dsp-user-info">
+                        <div className="dsp-user-name">{u.firstName} {u.lastName}</div>
+                        <div className="dsp-user-email">{u.email}</div>
+                      </div>
+                      {isSelected && <div className="dsp-check">{Icon.check}</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {search.length >= 2 && !searching && results.length === 0 && (
+              <div className="dsp-user-results">
+                <div className="dsp-no-results">No users found</div>
+              </div>
+            )}
           </div>
 
-          {/* Role */}
-          <div className="dsp-field">
-            <label className="dsp-field-label">Role</label>
-            <div className="dsp-role-row">
-              {["Viewer", "Member", "Admin"].map(r => (
-                <button key={r} className={`dsp-role-opt${role === r ? " selected" : ""}`} onClick={() => setRole(r)}>{r}</button>
-              ))}
+          {selectedUsers.length > 0 && (
+            <div className="dsp-field">
+              <label className="dsp-field-label">Selected ({selectedUsers.length})</label>
+              <div className="dsp-selected-chips">
+                {selectedUsers.map(u => (
+                  <div key={u._id} className="dsp-chip">
+                    <div className="dsp-chip-avatar">
+                      {u.avatarUrl
+                        ? <img src={u.avatarUrl} alt={getInitials(u)} />
+                        : getInitials(u)
+                      }
+                    </div>
+                    {u.firstName} {u.lastName}
+                    <button className="dsp-chip-remove" onClick={() => removeUser(u._id)}>
+                      {Icon.close}
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="dsp-email-hint" style={{ marginTop: "0.5rem" }}>
-              {role === "Viewer" && "Can view tasks and comments, cannot edit."}
-              {role === "Member" && "Can create and edit tasks assigned to them."}
-              {role === "Admin"  && "Full access — can edit project settings and invite others."}
-            </p>
+          )}
+
+          <div className="dsp-field">
+            <label className="dsp-field-label">Invite expires at</label>
+            <input
+              className="dsp-expires-input"
+              type="datetime-local"
+              value={expiresAt}
+              onChange={e => setExpiresAt(e.target.value)}
+            />
+            <p className="dsp-email-hint">Leave blank for a permanent invite.</p>
           </div>
+
         </div>
 
         <div className="dsp-drawer-footer">
           <div className="dsp-drawer-actions">
             <button className="dsp-drawer-btn cancel" onClick={onClose} disabled={saving}>Cancel</button>
-            <button className="dsp-drawer-btn save" onClick={handleSend} disabled={saving || validCount === 0}>
-              {saving ? <><span className="dsp-spinner" /> Sending…</> : <>{Icon.mail} Send {validCount > 0 ? `${validCount} ` : ""}Invite{validCount !== 1 ? "s" : ""}</>}
+            <button
+              className="dsp-drawer-btn save"
+              onClick={handleSend}
+              disabled={saving || selectedUsers.length === 0}
+            >
+              {saving
+                ? <><span className="dsp-spinner" /> Sending…</>
+                : <>{Icon.mail} Send {selectedUsers.length > 0 ? `${selectedUsers.length} ` : ""}Invite{selectedUsers.length !== 1 ? "s" : ""}</>
+              }
             </button>
           </div>
         </div>
+
       </aside>
     </>
   );
@@ -531,30 +713,24 @@ const STATUS_OPTIONS = [
 
   const set = (field) => (e) => { setForm(prev => ({ ...prev, [field]: e.target.value })); setIsDirty(true); };
 
-  // const removeMember = (name) => {
-  //   if (name === project?.owner?.name) return; // can't remove owner
-  //   setMembers(prev => prev.filter(m => m.name !== name));
-  //   setIsDirty(true);
-  // };
+  const handleSave = async () => {
+    if (!form.title.trim()) return;
 
-const handleSave = async () => {
-  if (!form.title.trim()) return;
+    try {
+      setSaving(true);
 
-  try {
-    setSaving(true);
+      const updated = await updateProject(project._id, form);
 
-    const updated = await updateProject(project._id, form);
+      onSave?.(updated.data.project);
 
-    onSave?.(updated.data.project);
-
-    setIsDirty(false);
-    onClose();
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setSaving(false);
-  }
-};
+      setIsDirty(false);
+      onClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
 const handleRemoveMember = async (userId) => {
   try {
@@ -583,7 +759,6 @@ const handleRemoveMember = async (userId) => {
         </div>
 
         <div className="dsp-drawer-body">
-          {/* Title & description */}
           <div>
             <div className="dsp-dlabel">Project Info</div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -630,7 +805,6 @@ const handleRemoveMember = async (userId) => {
             </div>
           </div>
 
-          {/* Members */}
           <div>
             <div className="dsp-dlabel">Members ({members.length})</div>
             <div className="dsp-member-list">
@@ -648,16 +822,16 @@ const handleRemoveMember = async (userId) => {
                       {m.user?.firstName ?? ""} {m.user?.lastName ?? ""}
                     </span>
 
-<span className="dsp-member-role">
-  {m?.status == "pending" ? "invited" : "member"}
-</span>
+                    <span className="dsp-member-role">
+                      {m?.status == "pending" ? "invited" : "member"}
+                    </span>
 
-<button
-  className="dsp-member-remove"
-  onClick={() => handleRemoveMember(m.user._id)}
->
-  {Icon.trash}
-</button>
+                    <button
+                      className="dsp-member-remove"
+                      onClick={() => handleRemoveMember(m.user._id)}
+                    >
+                      {Icon.trash}
+                    </button>
                   </div>
                 );
               })}
@@ -723,18 +897,13 @@ function TaskCard({ task, isOwner, onDragStart, onDragEnd, onClick }) {
 
 export default function DashboardSingleProject() {
   const { id }    = useParams();
-  const navigate  = useNavigate();
   const { state } = useLocation();
-
-  // Resolve project — from navigation state (instant) or from data (URL access)
-  // const [project, setProject] = useState(
-  //   () => state?.project ?? ALL_PROJECTS.find(p => p.id === id) ?? null
-  // );
-
+  const { user } = useContext(AuthContext);
+    
+  const navigate  = useNavigate();
 
   const [dragOverCol,  setDragOverCol]  = useState(null);
 
-  // Drawer state
   const [activeTask,   setActiveTask]   = useState(null);
   const [taskOpen,     setTaskOpen]     = useState(false);
   const [addOpen,      setAddOpen]      = useState(false);
@@ -744,82 +913,43 @@ export default function DashboardSingleProject() {
 
   const toast = useToast();
 
-  // if (!project1) return <div style={{ padding: "4rem", textAlign: "center", color: "#9ca3af", fontFamily: "Inter, sans-serif" }}>Project not found.</div>;
-
-
-
-    const { user } = useContext(AuthContext);
-    
-
-  //   What triggers it? When you start dragging a task card.
-
   const handleDragStart = useCallback((e, taskId) => { 
-    e.dataTransfer.effectAllowed = "move"; // Tells the browser: “This item is being moved (not copied or linked).
-    e.dataTransfer.setData("taskId", taskId); // It stores data inside the drag event. So you're basically saying: “While dragging, carry this task ID with you.”
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("taskId", taskId);
   }, []);
 
-
-
-
-  const handleDragEnd   = useCallback(() => setDragOverCol(null), []); //When dragging stops — either: drop happens or user cancels drag (drops outside) Just cleanup: “Remove any highlighted column”
-
-
-  // What triggers it? When you drag a task over a column.
+  const handleDragEnd   = useCallback(() => setDragOverCol(null), []); 
   const handleDragOver  = useCallback((e, colId) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOverCol(colId); }, []);
 
+  const handleDrop = useCallback(async (e, colId) => {
+    e.preventDefault();
 
+    const taskId = e.dataTransfer.getData("taskId");
 
-
-  // // What triggers it? When you drag a task over a column.
-  // const handleDrop      = useCallback((e, colId) => {
-  //   e.preventDefault();
-  //   const taskId = e.dataTransfer.getData("taskId"); // “Which task is being dropped?”
-  //   setTasks1(prev => prev.map(t => t._id === taskId ? { ...t, col: colId } : t)); //Ide poziv za backend - This is the actual “move task” logic: find the dragged task , change its column to the new one,  keep everything else the same
-  //   setDragOverCol(null); // Removes the “hovered column” highlight.
-  // }, []);
-
-
-const handleDrop = useCallback(async (e, colId) => {
-  e.preventDefault();
-
-  const taskId = e.dataTransfer.getData("taskId");
-
-  // 1. optimistic UI update
-  setTasks1(prev => ({
-    ...prev,
-    tasks: prev.tasks.map(task =>
-      task._id === taskId
-        ? { ...task, status: colId }
-        : task
-    )
-  }));
+    setTasks1(prev => ({
+      ...prev,
+      tasks: prev.tasks.map(task =>
+        task._id === taskId
+          ? { ...task, status: colId }
+          : task
+      )
+    }));
 
   setDragOverCol(null);
 
-  // 2. backend sync
-  try {
-    await updateTaskStatus(taskId, colId);
-  } catch (err) {
-    console.error(err);
+    try {
+      await updateTaskStatus(taskId, colId);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
 
-    // optional rollback later (we can add this if you want)
-  }
-}, []);
-
-
-  /* Drawer openers  */
   const openTask = (task) => { setActiveTask(task); setTaskOpen(true); };
   const openAddTask = (col = "planned") => { setAddDefaultCol(col); setAddOpen(true); };
-
-
-
 
   const [loading, setLoading] = useState(false);
   const [project1, setProject1] = useState({});
   const [tasks1, setTasks1] = useState({ count: 0, tasks: [] });
-
-
-
 
   const fetchProjectData = async () => {
       try {
@@ -842,28 +972,34 @@ const handleDrop = useCallback(async (e, colId) => {
 
     const isOwner = project1.creator?._id === user.id;
 
-const [singleTask, setSingleTask] = useState({});
-const [isLoadingTask, setIsLoadingTask] = useState(false);
+  const [singleTask, setSingleTask] = useState({});
+  const [isLoadingTask, setIsLoadingTask] = useState(false);
 
-const handleTaskClick = async (taskId) => { 
-  if (!taskId) return;
+  const handleTaskClick = async (taskId) => { 
+    if (!taskId) return;
 
-  setIsLoadingTask(true);
-  try {
-    const res = await getTask(taskId);
+    setIsLoadingTask(true);
+    try {
+      const res = await getTask(taskId);
 
-    if (res?.data) {
-      setSingleTask(res.data);
+      if (res?.data) {
+        setSingleTask(res.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch task details:", error);
+    } finally {
+      setIsLoadingTask(false);
     }
-  } catch (error) {
-    console.error("Failed to fetch task details:", error);
-  } finally {
-    setIsLoadingTask(false);
-  }
-};
+  };
 
-const dl = project1?.deadline ? fmtDate(project1.deadline) : null;
-const visibleMembers = (project1?.members || []).slice(0, 5);
+  const dl = project1?.deadline ? fmtDate(project1.deadline) : null;
+  const visibleMembers =
+    (project1?.members || [])
+      .filter(m => m.status === "accepted")
+      .slice(0, 5);
+
+  const acceptedMembers =
+    project1?.members?.filter(m => m.status === "accepted") || [];
 
     useEffect(() => {
         fetchProjectData();
@@ -873,12 +1009,10 @@ const visibleMembers = (project1?.members || []).slice(0, 5);
     <>
       <div className="dsp-page">
 
-        {/* Breadcrumb */}
-        <div className="dsp-breadcrumb" onClick={() => navigate("/projects")} role="button" tabIndex={0} onKeyDown={e => e.key === "Enter" && navigate("/projects")}>
+        <div className="dsp-breadcrumb" onClick={() => navigate(`/dashboard-projects/`)} role="button" tabIndex={0} onKeyDown={e => e.key === "Enter" && navigate("/dashboard-projects/")}>
           {Icon.back} Back to Projects
         </div>
 
-        {/* Project info card */}
         <div className="dsp-info-card">
           <div className="dsp-info-left">
             <h1 className="dsp-project-title">
@@ -923,7 +1057,8 @@ const visibleMembers = (project1?.members || []).slice(0, 5);
                 ))}
                 </div>
               <span style={{ color: "#9ca3af", fontSize: "0.75rem" }}>
-                {project1?.members?.length || 0} {project1?.members?.length === 1 ? "member" : "members"}
+              {acceptedMembers.length}{" "}
+              {acceptedMembers.length === 1 ? "member" : "members"}
               </span>              </span>
               <span className="dsp-meta-divider" />
               <span className="dsp-meta-item">
@@ -944,8 +1079,7 @@ const visibleMembers = (project1?.members || []).slice(0, 5);
 
           )}
 
-
-            {isOwner && (
+          {isOwner && (
               <>
                 <button className="dsp-btn ghost" onClick={() => setInviteOpen(true)}>
                   {Icon.userPlus} Invite
@@ -959,165 +1093,169 @@ const visibleMembers = (project1?.members || []).slice(0, 5);
         </div>
 
 
-{/* Kanban board */}
-<div className="dsp-board-wrap">
-  <div className="dsp-board">
-    {COLUMNS.map(col => {
-      const colTasks = (tasks1.tasks || []).filter(t => t.status === col.id);
-      const isOver = dragOverCol === col.id; // “Which column is glowing right now because I’m dragging something over it?”
-      return (
-        <div
-          key={col.id}
-          className={`dsp-col${isOver ? " drag-over" : ""}`}
-          onDragOver={e => handleDragOver(e, col.id)} // pogledati
-          onDragLeave={() => setDragOverCol(null)} // pogledati
-          onDrop={e => handleDrop(e, col.id)} // pogledati
-        >
-          <div className="dsp-col-header">
-            <div className="dsp-col-title-wrap">
-              <span className={`dsp-col-dot ${col.dotClass}`} />
-              <span className="dsp-col-name">{col.label}</span>
-              <span className="dsp-col-count">{colTasks.length}</span>
-            </div>
-          {isOwner && (
-            <button
-              className="dsp-col-add-btn"
-              onClick={() => openAddTask(col.id)} // dodavanje taskova, implementirati nakon ovog
-              aria-label={`Add task to ${col.label}`}
-              title="Add task"
-            >
-              {Icon.plus}
-            </button>
-          )}
-
-          </div>
-          <div className={`dsp-col-body${isOver ? " drag-over-zone" : ""}`}>
-            {colTasks.map(task => {
-            const assigneeInitials = task.assignedTo
-              ? `${task.assignedTo.firstName?.[0] || ""}${task.assignedTo.lastName?.[0] || ""}`.toUpperCase()
-              : "";
-            const { firstName = "", lastName = "" } = task.assignedTo || {};
-
-            const fullName = `${firstName} ${lastName}`.trim();
-            const assigneeName = fullName || "Unassigned";
-
-              const normalizedTask = {
-                id:          task._id,
-                col:         task.status,
-                title:       task.title,
-                description: task.description,
-                priority:    task.priority,
-                due:         task.dueDate,
-                tags:        task.tags || [],
-                checklist:   (task.checklist || []).map(c => ({
-                  id:   c._id,
-                  text: c.text,
-                  done: c.isDone,
-                })),
-                comments: task.comments || [],
-                assignee: { name: assigneeName, initials: assigneeInitials, avatarUrl: task.assignedTo.avatarUrl }, 
-              };
-
-            const taskAuth =
-              task.createdBy === user.id ||
-              task.assignedTo?._id === user.id;
-
+        {/* Kanban board */}
+        <div className="dsp-board-wrap">
+          <div className="dsp-board">
+            {COLUMNS.map(col => {
+              const colTasks = (tasks1.tasks || []).filter(t => t.status === col.id);
+              const isOver = dragOverCol === col.id; // “Which column is glowing right now because I’m dragging something over it?”
               return (
-                <TaskCard
-                  key={task._id}
-                  task={normalizedTask}
-                  isOwner={taskAuth}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                  onClick={() => handleTaskClick(task._id).then(() => setTaskOpen(true))}
-                />
+                <div
+                  key={col.id}
+                  className={`dsp-col${isOver ? " drag-over" : ""}`}
+                  onDragOver={e => handleDragOver(e, col.id)} // pogledati
+                  onDragLeave={() => setDragOverCol(null)} // pogledati
+                  onDrop={e => handleDrop(e, col.id)} // pogledati
+                >
+                  <div className="dsp-col-header">
+                    <div className="dsp-col-title-wrap">
+                      <span className={`dsp-col-dot ${col.dotClass}`} />
+                      <span className="dsp-col-name">{col.label}</span>
+                      <span className="dsp-col-count">{colTasks.length}</span>
+                    </div>
+                  {isOwner && (
+                    <button
+                      className="dsp-col-add-btn"
+                      onClick={() => openAddTask(col.id)} // dodavanje taskova, implementirati nakon ovog
+                      aria-label={`Add task to ${col.label}`}
+                      title="Add task"
+                    >
+                      {Icon.plus}
+                    </button>
+                  )}
+
+                  </div>
+                  <div className={`dsp-col-body${isOver ? " drag-over-zone" : ""}`}>
+                    {colTasks.map(task => {
+                    const assigneeInitials = task.assignedTo
+                      ? `${task.assignedTo.firstName?.[0] || ""}${task.assignedTo.lastName?.[0] || ""}`.toUpperCase()
+                      : "";
+                    const { firstName = "", lastName = "" } = task.assignedTo || {};
+
+                    const fullName = `${firstName} ${lastName}`.trim();
+                    const assigneeName = fullName || "Unassigned";
+
+                      const normalizedTask = {
+                        id:          task._id,
+                        col:         task.status,
+                        title:       task.title,
+                        description: task.description,
+                        priority:    task.priority,
+                        due:         task.dueDate,
+                        tags:        task.tags || [],
+                        checklist:   (task.checklist || []).map(c => ({
+                          id:   c._id,
+                          text: c.text,
+                          done: c.isDone,
+                        })),
+                        comments: task.comments || [],
+                        assignee: { name: assigneeName, initials: assigneeInitials, avatarUrl: task.assignedTo?.avatarUrl || "" }, 
+                      };
+
+                    const taskAuth =
+                      task.createdBy === user.id ||
+                      task.assignedTo?._id === user.id;
+
+                      return (
+                        <TaskCard
+                          key={task._id}
+                          task={normalizedTask}
+                          isOwner={taskAuth}
+                          onDragStart={handleDragStart}
+                          onDragEnd={handleDragEnd}
+                          onClick={() => handleTaskClick(task._id).then(() => setTaskOpen(true))}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>
         </div>
-      );
-    })}
-  </div>
-</div>
       </div>
 
-<TaskDetailDrawer
-  task={(() => {
-    if (!singleTask?._id) return null;
+      <TaskDetailDrawer
+        task={(() => {
+          if (!singleTask?._id) return null;
 
-    const a = singleTask.assignedTo;
+          const a = singleTask.assignedTo;
 
-    const assigneeName = a
-      ? `${a.firstName ?? ""} ${a.lastName ?? ""}`.trim() || "Unassigned"
-      : "Unassigned";
+          const assigneeName = a
+            ? `${a.firstName ?? ""} ${a.lastName ?? ""}`.trim() || "Unassigned"
+            : "Unassigned";
 
-    const assigneeInitials = a
-      ? `${a.firstName?.[0] ?? ""}${a.lastName?.[0] ?? ""}`.toUpperCase() || "?"
-      : "?";
+          const assigneeInitials = a
+            ? `${a.firstName?.[0] ?? ""}${a.lastName?.[0] ?? ""}`.toUpperCase() || "?"
+            : "?";
 
-    return {
-      id:          singleTask._id,
-      title:       singleTask.title,
-      description: singleTask.description,
-      priority:    singleTask.priority,
-      due:         singleTask.dueDate,
-      tags:        singleTask.tags || [],
-      checklist:   (singleTask.checklist || []).map(c => ({
-        id:   c._id,
-        text: c.text,
-        done: c.isDone,
-      })),
-      comments: (singleTask.comments || []).map(c => {
-        const author = c.author;
+          return {
+            id:          singleTask._id,
+            title:       singleTask.title,
+            description: singleTask.description,
+            priority:    singleTask.priority,
+            due:         singleTask.dueDate,
+            tags:        singleTask.tags || [],
+            checklist:   (singleTask.checklist || []).map(c => ({
+              id:   c._id,
+              text: c.text,
+              done: c.isDone,
+            })),
+            comments: (singleTask.comments || []).map(c => {
+              const author = c.author;
 
-        const authorName = typeof author === "object" && author !== null
-          ? `${author.firstName || ""} ${author.lastName || ""}`.trim()
-          : "Unknown";
+              const authorName = typeof author === "object" && author !== null
+                ? `${author.firstName || ""} ${author.lastName || ""}`.trim()
+                : "Unknown";
 
-        const authorInitials = typeof author === "object" && author !== null
-          ? `${author.firstName?.[0] || ""}${author.lastName?.[0] || ""}`.toUpperCase()
-          : "?";
-        return {
-          author:   authorName,
-          initials: authorInitials,
-          time:     c.createdAt
-            ? new Date(c.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
-            : "",
-          text: c.body,
-          avatarUrl: author.avatarUrl || ""
-        };
-      }),
-      assignee: { name: assigneeName, initials: assigneeInitials, avatarUrl: a?.avatarUrl || null },
-    };
-  })()}
-  colLabel={
-    COLUMNS.find(c => c.id === singleTask?.status)?.label || ""
-  }
-  isOpen={taskOpen}
-  onClose={() => setTaskOpen(false)}
-  currentUser={user}
-/>
+              const authorInitials = typeof author === "object" && author !== null
+                ? `${author.firstName?.[0] || ""}${author.lastName?.[0] || ""}`.toUpperCase()
+                : "?";
+              return {
+                author:   authorName,
+                initials: authorInitials,
+                time:     c.createdAt
+                  ? new Date(c.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+                  : "",
+                text: c.body,
+                avatarUrl: author.avatarUrl || ""
+              };
+            }),
+            assignee: { name: assigneeName, initials: assigneeInitials, avatarUrl: a?.avatarUrl || null },
+          };
+        })()}
+        colLabel={
+          COLUMNS.find(c => c.id === singleTask?.status)?.label || ""
+        }
+        isOpen={taskOpen}
+        onClose={() => setTaskOpen(false)}
+        currentUser={user}
+      />
 
 
-      {/* <AddTaskDrawer
-        isOpen={addOpen}
-        onClose={() => setAddOpen(false)}
-        defaultCol={addDefaultCol}
-        members={project.members}
-        onAdd={(newTask) => {
-          setTasks(prev => [...prev, newTask]);
-          toast.fire("Task added successfully");
-        }}
+       <AddTaskDrawer
+          isOpen={addOpen}
+          onClose={() => setAddOpen(false)}
+          defaultCol={addDefaultCol}
+          members={project1.members?.filter(m => m.status === "accepted") || []}
+                  onAdd={(newTask) => {
+          setTasks1(prev => ({
+            ...prev,
+            tasks: [...prev.tasks, newTask],
+            count: prev.count + 1
+          }));
+            toast.fire("Task added successfully");
+          }}
+          projectId={project1._id}
       />
 
       <InviteDrawer
         isOpen={inviteOpen}
         onClose={() => setInviteOpen(false)}
-        projectTitle={project.title}
+        projectTitle={project1.title}
         onInvite={(emails, role) => toast.fire(`Invited ${emails.length} person${emails.length !== 1 ? "s" : ""} as ${role}`)}
+        projectId={project1._id}
       />
-
-*/}
 
       <EditProjectDrawer
         isOpen={editOpen}
@@ -1129,10 +1267,6 @@ const visibleMembers = (project1?.members || []).slice(0, 5);
         }}
       />  
 
-
-
-
-      {/* Toast */}
       <div className={`dsp-toast${toast.show ? " show" : ""}`} role="status">
         <span className="dsp-toast-icon">{Icon.check}</span>
         {toast.msg}
