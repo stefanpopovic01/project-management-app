@@ -2,6 +2,13 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import "./DashboardSingleProject.css";
 import { ALL_PROJECTS } from "../../pages/DashboardProjects/DashboardProjects";
+import { useContext } from "react";
+import { getProject } from "../../api/services/projectServices";
+import { getProjectTasks } from "../../api/services/taskServices";
+import { getTask } from "../../api/services/taskServices";
+import { AuthContext } from "../../contex/authContext";
+import { updateTaskStatus } from "../../api/services/taskServices";
+import { addComment } from "../../api/services/taskServices";
 
 const Icon = {
   back: (<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="13 5 7 10 13 15" /></svg>),
@@ -22,18 +29,6 @@ const Icon = {
 };
 
 const CURRENT_USER = "Alex Morrison";
-
-const MOCK_TASKS = [
-  { id: "t1", projectId: 1, col: "planned",  title: "Token audit — spacing & sizing",      description: "Review all spacing and sizing tokens across the existing system, identify inconsistencies, and document a unified scale for v3.", priority: "high",   assignee: { name: "Alex Morrison", initials: "AM" }, tags: ["Tokens","Audit"],      due: "2025-04-28", checklist: [{ id:"c1", text:"Export current token list", done:true },{ id:"c2", text:"Map to 4pt grid", done:false },{ id:"c3", text:"Write migration notes", done:false }], comments: [{ author:"Sara Kim", initials:"SK", time:"2d ago", text:"Should we align with the Tailwind scale?" },{ author:"Alex Morrison", initials:"AM", time:"1d ago", text:"Good call — I'll use that as the reference." }] },
-  { id: "t2", projectId: 1, col: "planned",  title: "Dark mode colour ramp",               description: "Define a full dark-mode colour palette that mirrors the light-mode semantic tokens and passes WCAG AA contrast.", priority: "medium", assignee: { name: "Lena Park",     initials: "LP" }, tags: ["Colour","Accessibility"], due: "2025-05-05", checklist: [{ id:"c4", text:"Create dark-mode Figma frame", done:false },{ id:"c5", text:"Check contrast ratios", done:false }], comments: [] },
-  { id: "t3", projectId: 1, col: "planned",  title: "Icon library — v3 set",               description: "Source or redraw the 80 most-used icons in a unified 20×20 grid with 1.6px stroke weight.", priority: "low",    assignee: { name: "Jamie Liu",     initials: "JL" }, tags: ["Icons"],               due: "2025-05-15", checklist: [], comments: [] },
-  { id: "t4", projectId: 1, col: "progress", title: "Button component — all variants",     description: "Build Primary, Secondary, Ghost, Danger variants with size (sm/md/lg), loading state, and icon support. Export as React + Figma.", priority: "high",   assignee: { name: "Alex Morrison", initials: "AM" }, tags: ["Component","React"],    due: "2025-04-22", checklist: [{ id:"c6", text:"Figma variants complete", done:true },{ id:"c7", text:"React implementation", done:true },{ id:"c8", text:"Storybook stories", done:false },{ id:"c9", text:"Unit tests", done:false }], comments: [{ author:"Tom Reed", initials:"TR", time:"3h ago", text:"Storybook setup is ready whenever you are." }] },
-  { id: "t5", projectId: 1, col: "progress", title: "Input & form field components",       description: "Text input, textarea, select, checkbox, radio, and toggle — all with error/disabled states and helper text.", priority: "high",   assignee: { name: "Sara Kim",      initials: "SK" }, tags: ["Component","Forms"],   due: "2025-04-25", checklist: [{ id:"c10", text:"Text input done", done:true },{ id:"c11", text:"Select done", done:false },{ id:"c12", text:"Checkbox & radio", done:false }], comments: [] },
-  { id: "t6", projectId: 1, col: "progress", title: "Documentation site scaffold",         description: "Set up Next.js docs site with MDX, sidebar nav, search, and code-snippet copy. Deploy preview on Vercel.", priority: "medium", assignee: { name: "Tom Reed",      initials: "TR" }, tags: ["Docs","Next.js"],       due: "2025-05-01", checklist: [{ id:"c13", text:"Repo & CI setup", done:true },{ id:"c14", text:"MDX pipeline", done:true },{ id:"c15", text:"Sidebar nav", done:false },{ id:"c16", text:"Algolia search", done:false }], comments: [{ author:"Alex Morrison", initials:"AM", time:"5h ago", text:"Looks great so far Tom — can we have the nav PR by Thursday?" }] },
-  { id: "t7", projectId: 1, col: "done",     title: "Design system scope & brief",         description: "Written scope document covering goals, non-goals, tech stack choices, and timeline. Signed off by stakeholders.", priority: "high",   assignee: { name: "Alex Morrison", initials: "AM" }, tags: ["Planning"],            due: "2025-03-10", checklist: [{ id:"c17", text:"Draft scope doc", done:true },{ id:"c18", text:"Stakeholder review", done:true },{ id:"c19", text:"Sign-off from eng lead", done:true }], comments: [{ author:"Lena Park", initials:"LP", time:"3w ago", text:"Great document — very clear goals." }] },
-  { id: "t8", projectId: 1, col: "done",     title: "Figma file architecture",             description: "Structured the Figma workspace with pages for Foundations, Components, Patterns, and Handoff. Shared with team.", priority: "medium", assignee: { name: "Alex Morrison", initials: "AM" }, tags: ["Figma","Planning"],    due: "2025-03-18", checklist: [{ id:"c20", text:"Create Figma pages", done:true },{ id:"c21", text:"Set up team library", done:true }], comments: [] },
-  { id: "t9", projectId: 1, col: "done",     title: "Typography tokens & type scale",      description: "Defined font family, type scale, line-height, and letter-spacing tokens. Published to Figma library and code repo.", priority: "medium", assignee: { name: "Sara Kim",      initials: "SK" }, tags: ["Tokens","Typography"],  due: "2025-03-28", checklist: [{ id:"c22", text:"Figma text styles", done:true },{ id:"c23", text:"CSS custom properties", done:true }], comments: [] },
-];
 
 const COLUMNS = [
   { id: "planned",  label: "Planned",     dotClass: "planned" },
@@ -89,12 +84,42 @@ function TaskDetailDrawer({ task, colLabel, isOpen, onClose, currentUser }) {
   const toggleCheck = (id) =>
     setChecks(prev => prev.map(c => c.id === id ? { ...c, done: !c.done } : c));
 
-  const sendComment = () => {
-    if (!comment.trim()) return;
-    const initials = currentUser.split(" ").map(w => w[0]).join("");
-    setComments(prev => [...prev, { author: currentUser, initials, time: "Just now", text: comment.trim() }]);
-    setComment("");
+
+
+
+const sendComment = async () => {
+  if (!comment.trim()) return;
+
+  const text = comment.trim();
+  const taskId = task.id;
+
+  const initials =
+    `${currentUser.firstName?.[0] ?? ""}${currentUser.lastName?.[0] ?? ""}`.toUpperCase() || "?";
+
+  const newComment = {
+    author: `${currentUser.firstName ?? ""} ${currentUser.lastName ?? ""}`.trim(),
+    initials,
+    time: "Just now",
+    avatarUrl: currentUser.avatarUrl || "",
+    text
   };
+
+  // 1. optimistic UI update
+  setComments(prev => [...prev, newComment]);
+  setComment("");
+
+  // 2. backend call
+  try {
+    await addComment(taskId, text);
+  } catch (err) {
+    console.error(err);
+
+    // optional: rollback (simple version)
+    // setComments(prev => prev.slice(0, -1));
+  }
+};
+
+
 
   const due = task ? fmtDate(task.due) : null;
   const doneCount = checks.filter(c => c.done).length;
@@ -124,7 +149,13 @@ function TaskDetailDrawer({ task, colLabel, isOpen, onClose, currentUser }) {
               <span className="dsp-detail-row-label">Assignee</span>
               <span className="dsp-detail-row-value">
                 <span className="dsp-detail-assignee-chip">
-                  <span className="dsp-detail-assignee-av">{task.assignee.initials}</span>
+                <span className="dsp-detail-assignee-av">
+                  {task.assignee.avatarUrl ? (
+                    <img  src={task.assignee.avatarUrl}  alt={task.assignee.initials}  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : (
+                    task.assignee.initials
+                  )}
+                </span>
                   {task.assignee.name}
                 </span>
               </span>
@@ -169,7 +200,14 @@ function TaskDetailDrawer({ task, colLabel, isOpen, onClose, currentUser }) {
               <div className="dsp-comments">
                 {comments.map((c, i) => (
                   <div key={i} className="dsp-comment">
-                    <div className="dsp-comment-av">{c.initials}</div>
+              <div className="dsp-comment-av">
+                {c.avatarUrl ? (
+                  <img src={c.avatarUrl} alt={`${c.initials}'s avatar`} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
+                  />
+                ) : (
+                  c.initials
+                )}
+              </div>
                     <div className="dsp-comment-body">
                       <div className="dsp-comment-top">
                         <span className="dsp-comment-author">{c.author}</span>
@@ -564,7 +602,7 @@ function EditProjectDrawer({ isOpen, onClose, project, onSave }) {
 
 function TaskCard({ task, isOwner, onDragStart, onDragEnd, onClick }) {
   const due        = fmtDate(task.due);
-  const canDrag    = task.assignee.name === CURRENT_USER || isOwner;
+  const canDrag    = isOwner;
   const doneChecks = task.checklist.filter(c => c.done).length;
 
   return (
@@ -586,24 +624,34 @@ function TaskCard({ task, isOwner, onDragStart, onDragEnd, onClick }) {
         <div className="dsp-task-meta">
           {task.checklist.length > 0 && <span style={{ fontSize: "0.6875rem", color: "#9ca3af" }}>{doneChecks}/{task.checklist.length}</span>}
           <span className={`dsp-task-due${due.overdue ? " overdue" : ""}`}>{Icon.calendar} {due.label}</span>
-          <div className="dsp-task-assignee" title={task.assignee.name}>{task.assignee.initials}</div>
+      <div className="dsp-task-assignee" title={task.assignee.name}>
+        {task.assignee.avatarUrl ? (
+          <img
+            src={task.assignee.avatarUrl}
+            alt={task.assignee.name}
+            className="dsp-task-avatar"
+          />
+        ) : (
+          task.assignee.initials
+        )}
+      </div>
         </div>
       </div>
     </div>
   );
 }
 
-export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
+export default function DashboardSingleProject() {
   const { id }    = useParams();
   const navigate  = useNavigate();
   const { state } = useLocation();
 
   // Resolve project — from navigation state (instant) or from data (URL access)
-  const [project, setProject] = useState(
-    () => state?.project ?? ALL_PROJECTS.find(p => p.id === Number(id)) ?? null
-  );
+  // const [project, setProject] = useState(
+  //   () => state?.project ?? ALL_PROJECTS.find(p => p.id === id) ?? null
+  // );
 
-  const [tasks,        setTasks]        = useState(MOCK_TASKS.filter(t => t.projectId === (project?.id ?? 1)));
+
   const [dragOverCol,  setDragOverCol]  = useState(null);
 
   // Drawer state
@@ -616,32 +664,130 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
 
   const toast = useToast();
 
-  if (!project) return <div style={{ padding: "4rem", textAlign: "center", color: "#9ca3af", fontFamily: "Inter, sans-serif" }}>Project not found.</div>;
+  // if (!project1) return <div style={{ padding: "4rem", textAlign: "center", color: "#9ca3af", fontFamily: "Inter, sans-serif" }}>Project not found.</div>;
 
-  const isOwner = project.owner.name === currentUser;
 
-  /* Drag  */
-  const handleDragStart = useCallback((e, taskId) => {
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("taskId", taskId);
+
+    const { user } = useContext(AuthContext);
+    
+
+  //   What triggers it? When you start dragging a task card.
+
+  const handleDragStart = useCallback((e, taskId) => { 
+    e.dataTransfer.effectAllowed = "move"; // Tells the browser: “This item is being moved (not copied or linked).
+    e.dataTransfer.setData("taskId", taskId); // It stores data inside the drag event. So you're basically saying: “While dragging, carry this task ID with you.”
   }, []);
 
-  const handleDragEnd   = useCallback(() => setDragOverCol(null), []);
+
+
+
+  const handleDragEnd   = useCallback(() => setDragOverCol(null), []); //When dragging stops — either: drop happens or user cancels drag (drops outside) Just cleanup: “Remove any highlighted column”
+
+
+  // What triggers it? When you drag a task over a column.
   const handleDragOver  = useCallback((e, colId) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOverCol(colId); }, []);
-  const handleDrop      = useCallback((e, colId) => {
-    e.preventDefault();
-    const taskId = e.dataTransfer.getData("taskId");
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, col: colId } : t));
-    setDragOverCol(null);
-  }, []);
+
+
+
+
+  // // What triggers it? When you drag a task over a column.
+  // const handleDrop      = useCallback((e, colId) => {
+  //   e.preventDefault();
+  //   const taskId = e.dataTransfer.getData("taskId"); // “Which task is being dropped?”
+  //   setTasks1(prev => prev.map(t => t._id === taskId ? { ...t, col: colId } : t)); //Ide poziv za backend - This is the actual “move task” logic: find the dragged task , change its column to the new one,  keep everything else the same
+  //   setDragOverCol(null); // Removes the “hovered column” highlight.
+  // }, []);
+
+
+const handleDrop = useCallback(async (e, colId) => {
+  e.preventDefault();
+
+  const taskId = e.dataTransfer.getData("taskId");
+
+  // 1. optimistic UI update
+  setTasks1(prev => ({
+    ...prev,
+    tasks: prev.tasks.map(task =>
+      task._id === taskId
+        ? { ...task, status: colId }
+        : task
+    )
+  }));
+
+  setDragOverCol(null);
+
+  // 2. backend sync
+  try {
+    await updateTaskStatus(taskId, colId);
+  } catch (err) {
+    console.error(err);
+
+    // optional rollback later (we can add this if you want)
+  }
+}, []);
+
 
   /* Drawer openers  */
   const openTask = (task) => { setActiveTask(task); setTaskOpen(true); };
   const openAddTask = (col = "planned") => { setAddDefaultCol(col); setAddOpen(true); };
 
-  const dl             = fmtDate(project.deadline);
-  const visibleMembers = project.members.slice(0, 5);
-  const extraMembers   = project.members.length - 5;
+
+
+
+  const [loading, setLoading] = useState(false);
+  const [project1, setProject1] = useState({});
+  const [tasks1, setTasks1] = useState({ count: 0, tasks: [] });
+
+
+
+
+  const fetchProjectData = async () => {
+      try {
+        setLoading(true);
+  
+        const [projectsRes, tasksRes] = await Promise.all([
+          getProject(id),
+          getProjectTasks(id)
+        ]);
+  
+        setProject1(projectsRes.data);
+        setTasks1(tasksRes.data);
+  
+      } catch (err) {
+        console.error("Error loading project data:", err);
+      } finally {
+        setLoading(false);
+      }
+  };
+
+    const isOwner = project1.creator?._id === user.id;
+
+const [singleTask, setSingleTask] = useState({});
+const [isLoadingTask, setIsLoadingTask] = useState(false);
+
+const handleTaskClick = async (taskId) => { 
+  if (!taskId) return;
+
+  setIsLoadingTask(true);
+  try {
+    const res = await getTask(taskId);
+
+    if (res?.data) {
+      setSingleTask(res.data);
+    }
+  } catch (error) {
+    console.error("Failed to fetch task details:", error);
+  } finally {
+    setIsLoadingTask(false);
+  }
+};
+
+const dl = project1?.deadline ? fmtDate(project1.deadline) : null;
+const visibleMembers = (project1?.members || []).slice(0, 5);
+
+    useEffect(() => {
+        fetchProjectData();
+    }, [id] );
 
   return (
     <>
@@ -656,48 +802,69 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
         <div className="dsp-info-card">
           <div className="dsp-info-left">
             <h1 className="dsp-project-title">
-              {project.title}
-              <span className={`dsp-status ${project.status}`}>
+              {project1?.title || ""}
+              <span className={`dsp-status ${project1?.status || ""}`}>
                 <span className="dsp-status-dot" />
-                {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                {project1?.status?.charAt(0)?.toUpperCase() + project1?.status?.slice(1) || ""}
               </span>
             </h1>
-            <p className="dsp-project-desc">{project.description}</p>
+            <p className="dsp-project-desc">{project1?.description || ""}</p>
 
             <div className="dsp-meta-strip">
               <span className="dsp-meta-item">
                 {Icon.flag}
-                <strong>{project.owner.name}</strong>
+            <strong>
+              {project1?.creator 
+                ? `${project1.creator.firstName} ${project1.creator.lastName}` 
+                : "Unknown Creator"}
+            </strong>
                 <span style={{ color: "#d1d5db", fontSize: "0.75rem" }}>Owner</span>
               </span>
               <span className="dsp-meta-divider" />
-              <span className={`dsp-meta-item${dl.overdue ? " dsp-task-due overdue" : ""}`}>
+              <span className={`dsp-meta-item${dl?.overdue ? " dsp-task-due overdue" : ""}`}>
                 {Icon.calendar}
-                <strong>{dl.label}</strong>
-                <span style={{ color: "#9ca3af", fontSize: "0.75rem" }}>{dl.overdue ? "Overdue" : "Deadline"}</span>
+              <strong>
+              <strong>{dl?.label || "No deadline"}</strong>
+              </strong>
+                <span style={{ color: "#9ca3af", fontSize: "0.75rem" }}>{dl?.overdue ? "Overdue" : "Deadline"}</span>
               </span>
               <span className="dsp-meta-divider" />
               <span className="dsp-meta-item">
                 {Icon.users}
                 <div className="dsp-meta-avatars">
-                  {visibleMembers.map((m, i) => <div key={i} className="dsp-meta-avatar" title={m.name}>{m.initials}</div>)}
-                  {extraMembers > 0 && <div className="dsp-meta-avatar extra">+{extraMembers}</div>}
+                {visibleMembers.map((m, i) => (
+                  <div key={i} className="dsp-meta-avatar" title={m?.user?.firstName || "Member"}>
+                    {m?.user?.avatarUrl ? (
+                      <img src={m.user.avatarUrl} alt="avatar" />
+                    ) : (
+                      `${m?.user?.firstName?.[0] || ""}${m?.user?.lastName?.[0] || ""}`
+                    )}
+                  </div>
+                ))}
                 </div>
-                <span style={{ color: "#9ca3af", fontSize: "0.75rem" }}>{project.members.length} members</span>
-              </span>
+              <span style={{ color: "#9ca3af", fontSize: "0.75rem" }}>
+                {project1?.members?.length || 0} {project1?.members?.length === 1 ? "member" : "members"}
+              </span>              </span>
               <span className="dsp-meta-divider" />
               <span className="dsp-meta-item">
                 {Icon.check}
-                <strong>{tasks.filter(t => t.col === "done").length}</strong>
-                <span style={{ color: "#9ca3af", fontSize: "0.75rem" }}>/ {tasks.length} done</span>
+              <strong>{project1?.completedTasks ?? 0}</strong>
+              <span style={{ color: "#9ca3af", fontSize: "0.75rem" }}>
+                / {project1?.totalTasks ?? 0} done
+              </span>
               </span>
             </div>
           </div>
-
           <div className="dsp-info-actions">
+
+          {isOwner && (
             <button className="dsp-btn primary" onClick={() => openAddTask("planned")}>
               {Icon.plus} Add Task
             </button>
+
+          )}
+
+
             {isOwner && (
               <>
                 <button className="dsp-btn ghost" onClick={() => setInviteOpen(true)}>
@@ -711,47 +878,148 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
           </div>
         </div>
 
-        {/* Kanban board */}
-        <div className="dsp-board-wrap">
-          <div className="dsp-board">
-            {COLUMNS.map(col => {
-              const colTasks = tasks.filter(t => t.col === col.id);
-              const isOver   = dragOverCol === col.id;
+
+{/* Kanban board */}
+<div className="dsp-board-wrap">
+  <div className="dsp-board">
+    {COLUMNS.map(col => {
+      const colTasks = (tasks1.tasks || []).filter(t => t.status === col.id);
+      const isOver = dragOverCol === col.id; // “Which column is glowing right now because I’m dragging something over it?”
+      return (
+        <div
+          key={col.id}
+          className={`dsp-col${isOver ? " drag-over" : ""}`}
+          onDragOver={e => handleDragOver(e, col.id)} // pogledati
+          onDragLeave={() => setDragOverCol(null)} // pogledati
+          onDrop={e => handleDrop(e, col.id)} // pogledati
+        >
+          <div className="dsp-col-header">
+            <div className="dsp-col-title-wrap">
+              <span className={`dsp-col-dot ${col.dotClass}`} />
+              <span className="dsp-col-name">{col.label}</span>
+              <span className="dsp-col-count">{colTasks.length}</span>
+            </div>
+          {isOwner && (
+            <button
+              className="dsp-col-add-btn"
+              onClick={() => openAddTask(col.id)} // dodavanje taskova, implementirati nakon ovog
+              aria-label={`Add task to ${col.label}`}
+              title="Add task"
+            >
+              {Icon.plus}
+            </button>
+          )}
+
+          </div>
+          <div className={`dsp-col-body${isOver ? " drag-over-zone" : ""}`}>
+            {colTasks.map(task => {
+            const assigneeInitials = task.assignedTo
+              ? `${task.assignedTo.firstName?.[0] || ""}${task.assignedTo.lastName?.[0] || ""}`.toUpperCase()
+              : "";
+            const { firstName = "", lastName = "" } = task.assignedTo || {};
+
+            const fullName = `${firstName} ${lastName}`.trim();
+            const assigneeName = fullName || "Unassigned";
+
+              const normalizedTask = {
+                id:          task._id,
+                col:         task.status,
+                title:       task.title,
+                description: task.description,
+                priority:    task.priority,
+                due:         task.dueDate,
+                tags:        task.tags || [],
+                checklist:   (task.checklist || []).map(c => ({
+                  id:   c._id,
+                  text: c.text,
+                  done: c.isDone,
+                })),
+                comments: task.comments || [],
+                assignee: { name: assigneeName, initials: assigneeInitials, avatarUrl: task.assignedTo.avatarUrl }, 
+              };
+
+            const taskAuth =
+              task.createdBy === user.id ||
+              task.assignedTo?._id === user.id;
+
               return (
-                <div key={col.id} className={`dsp-col${isOver ? " drag-over" : ""}`} onDragOver={e => handleDragOver(e, col.id)} onDragLeave={() => setDragOverCol(null)} onDrop={e => handleDrop(e, col.id)}>
-                  <div className="dsp-col-header">
-                    <div className="dsp-col-title-wrap">
-                      <span className={`dsp-col-dot ${col.dotClass}`} />
-                      <span className="dsp-col-name">{col.label}</span>
-                      <span className="dsp-col-count">{colTasks.length}</span>
-                    </div>
-                    <button className="dsp-col-add-btn" onClick={() => openAddTask(col.id)} aria-label={`Add task to ${col.label}`} title="Add task">
-                      {Icon.plus}
-                    </button>
-                  </div>
-                  <div className={`dsp-col-body${isOver ? " drag-over-zone" : ""}`}>
-                    {colTasks.map(task => (
-                      <TaskCard key={task.id} task={task} isOwner={isOwner} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onClick={openTask} />
-                    ))}
-                  </div>
-                </div>
+                <TaskCard
+                  key={task._id}
+                  task={normalizedTask}
+                  isOwner={taskAuth}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  onClick={() => handleTaskClick(task._id).then(() => setTaskOpen(true))}
+                />
               );
             })}
           </div>
         </div>
+      );
+    })}
+  </div>
+</div>
       </div>
 
-      {/* Task detail drawer */}
-      <TaskDetailDrawer
-        task={activeTask}
-        colLabel={activeTask ? COLUMNS.find(c => c.id === activeTask.col)?.label : ""}
-        isOpen={taskOpen}
-        onClose={() => setTaskOpen(false)}
-        currentUser={currentUser}
-      />
+<TaskDetailDrawer
+  task={(() => {
+    if (!singleTask?._id) return null;
 
-      {/* Add task drawer */}
-      <AddTaskDrawer
+    const a = singleTask.assignedTo;
+
+    const assigneeName = a
+      ? `${a.firstName ?? ""} ${a.lastName ?? ""}`.trim() || "Unassigned"
+      : "Unassigned";
+
+    const assigneeInitials = a
+      ? `${a.firstName?.[0] ?? ""}${a.lastName?.[0] ?? ""}`.toUpperCase() || "?"
+      : "?";
+
+    return {
+      id:          singleTask._id,
+      title:       singleTask.title,
+      description: singleTask.description,
+      priority:    singleTask.priority,
+      due:         singleTask.dueDate,
+      tags:        singleTask.tags || [],
+      checklist:   (singleTask.checklist || []).map(c => ({
+        id:   c._id,
+        text: c.text,
+        done: c.isDone,
+      })),
+      comments: (singleTask.comments || []).map(c => {
+        const author = c.author;
+
+        const authorName = typeof author === "object" && author !== null
+          ? `${author.firstName || ""} ${author.lastName || ""}`.trim()
+          : "Unknown";
+
+        const authorInitials = typeof author === "object" && author !== null
+          ? `${author.firstName?.[0] || ""}${author.lastName?.[0] || ""}`.toUpperCase()
+          : "?";
+        return {
+          author:   authorName,
+          initials: authorInitials,
+          time:     c.createdAt
+            ? new Date(c.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+            : "",
+          text: c.body,
+          avatarUrl: author.avatarUrl || ""
+        };
+      }),
+      assignee: { name: assigneeName, initials: assigneeInitials, avatarUrl: a?.avatarUrl || null },
+    };
+  })()}
+  colLabel={
+    COLUMNS.find(c => c.id === singleTask?.status)?.label || ""
+  }
+  isOpen={taskOpen}
+  onClose={() => setTaskOpen(false)}
+  currentUser={user}
+/>
+
+
+      {/* <AddTaskDrawer
         isOpen={addOpen}
         onClose={() => setAddOpen(false)}
         defaultCol={addDefaultCol}
@@ -762,7 +1030,6 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
         }}
       />
 
-      {/* Invite drawer */}
       <InviteDrawer
         isOpen={inviteOpen}
         onClose={() => setInviteOpen(false)}
@@ -770,7 +1037,6 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
         onInvite={(emails, role) => toast.fire(`Invited ${emails.length} person${emails.length !== 1 ? "s" : ""} as ${role}`)}
       />
 
-      {/* Edit project drawer */}
       <EditProjectDrawer
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
@@ -779,7 +1045,10 @@ export default function DashboardSingleProject({ currentUser = CURRENT_USER }) {
           setProject(updated);
           toast.fire("Project updated successfully");
         }}
-      />
+      />  */}
+
+
+
 
       {/* Toast */}
       <div className={`dsp-toast${toast.show ? " show" : ""}`} role="status">
