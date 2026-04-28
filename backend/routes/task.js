@@ -10,6 +10,7 @@ router.post("/", auth, taskController.createTask);
 router.post("/:id/comments", auth, taskController.addComment);
 router.patch("/:id", auth, taskController.updateTask);
 router.patch("/:id/status", auth, taskController.updateTaskStatus);
+router.patch("/:taskId/checklist/:itemId", auth, taskController.updateChecklistItem);
 router.delete("/:id", auth, taskController.deleteTask); 
 
 module.exports = router;

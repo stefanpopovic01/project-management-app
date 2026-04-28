@@ -266,4 +266,42 @@ async function deleteTask(req, res) {
   }
 }
 
-module.exports = { getProjectTasks, getTask, createTask, updateTask, deleteTask, getAllUserTasks, addComment, updateTaskStatus };
+async function updateChecklistItem(req, res) {
+  try {
+    const { taskId, itemId } = req.params;
+    const { isDone } = req.body;
+
+    const userId = req.user.id;
+
+    const task = await Task.findById(taskId)
+      .populate("assignedTo")
+      .populate("project");
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found." });
+    }
+
+    const isAssignee = task.assignedTo?._id?.toString() === userId;
+    const isCreator = task.createdBy.toString() === userId;
+
+    if (!isAssignee && !isCreator) return res.status(403).json({ message: "Not authorized." });
+
+    const item = task.checklist.id(itemId);
+
+    if (!item) return res.status(404).json({ message: "Checklist item not found." });
+
+    if (typeof isDone === "boolean") item.isDone = isDone;
+
+    await task.save();
+
+    res.status(200).json({
+      message: "Checklist item updated.",
+      item
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { getProjectTasks, getTask, createTask, updateTask, deleteTask, getAllUserTasks, addComment, updateTaskStatus, updateChecklistItem };
