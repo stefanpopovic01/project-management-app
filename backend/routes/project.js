@@ -13,7 +13,7 @@ router.post("/invite", auth, isProjectCreator, projectController.invite);
 router.patch("/respond-invite", auth, projectController.respondInvite);
 router.patch("/:id", auth, isProjectCreator, projectController.updateProject);
 router.delete("/:id", auth, isProjectCreator, projectController.deleteProject);
-router.delete("/:projectId/members/:userId", isProjectCreator, auth, projectController.removeMember);
+router.delete("/:projectId/members/:userId", auth, isProjectCreator, projectController.removeMember);
 
 
 module.exports = router;
