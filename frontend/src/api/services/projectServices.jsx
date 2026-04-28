@@ -32,3 +32,11 @@ export const respondInvite = (projectId, action) => {
 export const getProject = (id) => {
     return api.get(`/project/${id}`)
 };
+
+export const updateProject = (id, data) => {
+  return api.patch(`/project/${id}`, data);
+};
+
+export const removeProjectMember = (projectId, userId) => {
+  return api.delete(`/project/${projectId}/members/${userId}`);
+};
