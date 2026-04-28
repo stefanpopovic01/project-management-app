@@ -19,3 +19,7 @@ export const updateTaskStatus = (id, status) => {
 export const addComment = (id, body) => {
   return api.post(`/task/${id}/comments`, { body });
 };
+
+export const updateChecklistItem = (taskId, itemId, isDone) => {
+  return api.patch(`/task/${taskId}/checklist/${itemId}`, { isDone });
+};
