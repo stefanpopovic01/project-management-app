@@ -110,20 +110,43 @@ async function getProject(req, res) {
 }
 
 async function updateProject(req, res) {
-    try {
-        const project = await Project.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true }
-        );
+  try {
+    const project = await Project.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    )
+      .populate("creator", "firstName lastName email")
+      .populate("members.user", "firstName lastName email avatarUrl");
 
-        if (!project) return res.status(404).json({ message: "Project not found." });
-
-        res.status(200).json({ message: "Project updated.", project });
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (!project) {
+      return res.status(404).json({ message: "Project not found." });
     }
+
+    const totalTasks = await Task.countDocuments({ project: project._id });
+
+    const completedTasks = await Task.countDocuments({
+      project: project._id,
+      status: "done"
+    });
+
+    const memberCount = project.members.filter(
+      m => m.status === "accepted"
+    ).length;
+
+    res.status(200).json({
+      message: "Project updated.",
+      project: {
+        ...project.toObject(),
+        totalTasks,
+        completedTasks,
+        memberCount
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }
 
 async function deleteProject(req, res) {
