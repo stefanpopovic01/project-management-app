@@ -11,7 +11,7 @@ import { useEffect } from "react";
 
 export const ALL_PROJECTS = [
   {
-    id: 1, ownership: "owned",
+    id: "69dd2a1c7d023e88862de498", ownership: "owned",
     title: "Design System v3",
     description: "A comprehensive component library in Figma with React integration, covering tokens, patterns, and full documentation.",
     status: "active", deadline: "2025-06-15",
