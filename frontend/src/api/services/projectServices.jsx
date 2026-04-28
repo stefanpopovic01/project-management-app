@@ -28,3 +28,7 @@ export const respondInvite = (projectId, action) => {
     action
   });
 };
+
+export const getProject = (id) => {
+    return api.get(`/project/${id}`)
+};
