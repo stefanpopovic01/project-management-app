@@ -218,7 +218,7 @@ export default function DashboardProjects() {
   const navigate = useNavigate();
 
   const handleProjectClick = (project) => {
-    navigate(`/projects/${project.id}`, { state: { project } });
+    navigate(`/dashboard-projects/${project}`);
     
   };
 
@@ -327,7 +327,7 @@ export default function DashboardProjects() {
         <div className="dproj-grid">
           {projects.count > 0
             ? projects.projects.map((p) => (
-                <ProjectCard key={p._id} project={p} onClick={handleProjectClick} ownership={"owned"}/>
+                <ProjectCard key={p._id} project={p} onClick={() => handleProjectClick(p._id)} ownership={"owned"}/>
               ))
             : <div className="dproj-empty"><span className="dproj-empty-icon">📁</span>No projects match your search.</div>
           }
@@ -365,7 +365,7 @@ export default function DashboardProjects() {
         <div className="dproj-grid">
           {assigned.count > 0
             ? assigned.projects.map((p) => (
-                <ProjectCard key={p._id} project={p} onClick={handleProjectClick} ownership={"assigned"} />
+                <ProjectCard key={p._id} project={p} onClick={() => handleProjectClick(p._id)} ownership={"assigned"} />
               ))
             : <div className="dproj-empty"><span className="dproj-empty-icon">🤝</span>No assigned projects match your search.</div>
           }
