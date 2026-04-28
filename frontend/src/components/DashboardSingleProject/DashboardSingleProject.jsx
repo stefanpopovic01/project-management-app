@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import "./DashboardSingleProject.css";
 import { ALL_PROJECTS } from "../../pages/DashboardProjects/DashboardProjects";
 import { useContext } from "react";
-import { getProject } from "../../api/services/projectServices";
+import { getProject, updateProject, removeProjectMember } from "../../api/services/projectServices";
 import { getProjectTasks } from "../../api/services/taskServices";
 import { getTask } from "../../api/services/taskServices";
 import { AuthContext } from "../../contex/authContext";
@@ -501,15 +501,22 @@ function InviteDrawer({ isOpen, onClose, projectTitle, onInvite }) {
 }
 
 function EditProjectDrawer({ isOpen, onClose, project, onSave }) {
-  const [form,    setForm]    = useState({ title: "", description: "", deadline: "" });
+  const [form,    setForm]    = useState({ title: "", description: "", deadline: "", status: "" });
   const [members, setMembers] = useState([]);
   const [saving,  setSaving]  = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const titleRef = useRef(null);
 
+const STATUS_OPTIONS = [
+  { value: "planning", label: "Planning" },
+  { value: "active", label: "Active" },
+  { value: "review", label: "Review" },
+  { value: "archived", label: "Archived" }
+];
+
   useEffect(() => {
     if (isOpen && project) {
-      setForm({ title: project.title, description: project.description, deadline: project.deadline || "" });
+      setForm({ title: project.title, description: project.description, deadline: project.deadline ? project.deadline.split("T")[0] : "", status: project.status });
       setMembers([...project.members]);
       setIsDirty(false);
       setTimeout(() => titleRef.current?.focus(), 340);
@@ -524,21 +531,42 @@ function EditProjectDrawer({ isOpen, onClose, project, onSave }) {
 
   const set = (field) => (e) => { setForm(prev => ({ ...prev, [field]: e.target.value })); setIsDirty(true); };
 
-  const removeMember = (name) => {
-    if (name === project?.owner?.name) return; // can't remove owner
-    setMembers(prev => prev.filter(m => m.name !== name));
-    setIsDirty(true);
-  };
+  // const removeMember = (name) => {
+  //   if (name === project?.owner?.name) return; // can't remove owner
+  //   setMembers(prev => prev.filter(m => m.name !== name));
+  //   setIsDirty(true);
+  // };
 
-  const handleSave = async () => {
-    if (!form.title.trim()) return;
+const handleSave = async () => {
+  if (!form.title.trim()) return;
+
+  try {
     setSaving(true);
-    await new Promise(r => setTimeout(r, 800));
-    onSave?.({ ...project, ...form, members });
-    setSaving(false);
+
+    const updated = await updateProject(project._id, form);
+
+    onSave?.(updated.data.project);
+
     setIsDirty(false);
     onClose();
-  };
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setSaving(false);
+  }
+};
+
+const handleRemoveMember = async (userId) => {
+  try {
+    setMembers(prev => prev.filter(m => m.user._id !== userId));
+    console.log("aaa", project._id, userId);
+    await removeProjectMember(project._id, userId);
+
+    setIsDirty(true);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   if (!project) return null;
 
@@ -571,6 +599,34 @@ function EditProjectDrawer({ isOpen, onClose, project, onSave }) {
                 <label className="dsp-field-label" htmlFor="ep-deadline">Deadline</label>
                 <input id="ep-deadline" className="dsp-input" type="date" value={form.deadline} onChange={set("deadline")} />
               </div>
+
+              <div className="dsp-field">
+                <div className="dsp-status-group">
+                  <label className="dsp-field-label">Status</label>
+
+                  <div className="dsp-status-buttons">
+                    {STATUS_OPTIONS.map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        className={`dsp-status-btn ${
+                          form.status === opt.value ? "active" : ""
+                        }`}
+                        onClick={() => {
+                          setForm(prev => ({
+                            ...prev,
+                            status: opt.value
+                          }));
+                          setIsDirty(true);
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -579,20 +635,29 @@ function EditProjectDrawer({ isOpen, onClose, project, onSave }) {
             <div className="dsp-dlabel">Members ({members.length})</div>
             <div className="dsp-member-list">
               {members.map(m => {
-                const isOwner = m.name === project.owner.name;
+                // const isOwner = m.name === project.owner.name;
                 return (
-                  <div key={m.name} className="dsp-member-row">
-                    <div className="dsp-member-av">{m.initials}</div>
-                    <span className="dsp-member-name">{m.name}</span>
-                    <span className="dsp-member-role">{isOwner ? "Owner" : "Member"}</span>
-                    <button
-                      className="dsp-member-remove"
-                      onClick={() => removeMember(m.name)}
-                      disabled={isOwner}
-                      title={isOwner ? "Cannot remove owner" : `Remove ${m.name}`}
-                    >
-                      {Icon.trash}
-                    </button>
+                  <div key={m._id} className="dsp-member-row">
+                    <div className="dsp-member-av">
+                      {m.user?.avatarUrl ? (
+                        <img src={m.user.avatarUrl} alt={`${m.user?.firstName ?? ""} ${m.user?.lastName ?? ""}`} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover"}} />
+                        ) : ( `${m.user?.firstName?.[0] ?? ""}${m.user?.lastName?.[0] ?? ""}`.toUpperCase() )}
+                      </div>
+
+                    <span className="dsp-member-name">
+                      {m.user?.firstName ?? ""} {m.user?.lastName ?? ""}
+                    </span>
+
+<span className="dsp-member-role">
+  {m?.status == "pending" ? "invited" : "member"}
+</span>
+
+<button
+  className="dsp-member-remove"
+  onClick={() => handleRemoveMember(m.user._id)}
+>
+  {Icon.trash}
+</button>
                   </div>
                 );
               })}
@@ -603,7 +668,9 @@ function EditProjectDrawer({ isOpen, onClose, project, onSave }) {
         <div className="dsp-drawer-footer">
           <div className="dsp-drawer-actions">
             <button className="dsp-drawer-btn cancel" onClick={onClose} disabled={saving}>Cancel</button>
-            <button className="dsp-drawer-btn save" onClick={handleSave} disabled={saving || !isDirty || !form.title.trim()}>
+            <button className="dsp-drawer-btn save" 
+            onClick={handleSave} 
+            disabled={saving || !isDirty || !form.title.trim()}>
               {saving ? <><span className="dsp-spinner" /> Saving…</> : <>{Icon.save} Save Changes</>}
             </button>
           </div>
@@ -1050,15 +1117,17 @@ const visibleMembers = (project1?.members || []).slice(0, 5);
         onInvite={(emails, role) => toast.fire(`Invited ${emails.length} person${emails.length !== 1 ? "s" : ""} as ${role}`)}
       />
 
+*/}
+
       <EditProjectDrawer
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
-        project={project}
+        project={project1}
         onSave={(updated) => {
-          setProject(updated);
+          setProject1(updated);
           toast.fire("Project updated successfully");
         }}
-      />  */}
+      />  
 
 
 

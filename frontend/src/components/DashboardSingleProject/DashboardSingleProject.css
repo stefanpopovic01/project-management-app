@@ -834,6 +834,26 @@
   border-radius: 50%;
 }
 
+.dsp-status-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dsp-status-btn {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.dsp-status-btn.active {
+  background: rgb(36, 113, 220);
+  color: white;
+}
+
 @media (max-width: 64rem) { .dsp-page { margin-left: 0; } }
 
 @media (max-width: 48rem) {
