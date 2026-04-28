@@ -40,3 +40,7 @@ export const updateProject = (id, data) => {
 export const removeProjectMember = (projectId, userId) => {
   return api.delete(`/project/${projectId}/members/${userId}`);
 };
+
+export const invite = (projectId, userId, expiresAt) => {
+  return api.post(`project/invite`, { projectId, userId, expiresAt });
+};

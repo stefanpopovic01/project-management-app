@@ -23,3 +23,7 @@ export const addComment = (id, body) => {
 export const updateChecklistItem = (taskId, itemId, isDone) => {
   return api.patch(`/task/${taskId}/checklist/${itemId}`, { isDone });
 };
+
+export const createTask = (payload) => {
+  return api.post("/task", payload);
+};
