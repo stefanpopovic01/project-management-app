@@ -1,34 +1,41 @@
-import { React, useState} from 'react';
-import { Link } from "react-router-dom";
-import './Navbar.css'
-import logo from '../../assets/logo.png'
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import './Navbar.css';
 
+import logo from "../../assets/logo2.png"
 
-function Navbar() {
-  
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <div className="navbar-container">
-        <div className='navbar-frame'>
-          <div className="nav">
-            <div className="nav-left">
-              <img src={logo} alt="logo" />
-            </div>
+    <nav className="navbar-container">
+      <div className="navbar-content">
+        <div className="navbar-logo">
+          <a href="/">
+            <img src={logo} alt="Flowly Logo" className="logo-img" />
+            <span className="logo-text">Flowly</span>
+          </a>
+        </div>
 
-            <div className="nav-center">
-              <Link to="/">Home</Link>
-              <a href="#">Product</a>
-              <a href="#">Docs</a>
-              <a href="#">Contact</a>
-            </div>
+        <button className="menu-toggle" onClick={() => setIsOpen(!isOpen)}>
+          <span className={`hamburger ${isOpen ? 'open' : ''}`}></span>
+        </button>
 
-            <div className="nav-right">
-              <button className="btn-text"><Link to="/login">Login</Link></button>
-              <button className="btn-accent"><Link to="/register">Sing Up</Link></button>
-            </div>
+        <div className={`navbar-menu ${isOpen ? 'active' : ''}`}>
+          <ul className="nav-links">
+            <li><Link to="/" className="nav-item" onClick={() => setIsOpen(false)}>Home</Link></li>
+            <li><a href="/about" className="nav-item">About Us</a></li>
+            <li><a href="/contact" className="nav-item">Contact</a></li>
+          </ul>
+
+          <div className="nav-actions">
+            <Link to="/login" className="btn-login" onClick={() => setIsOpen(false)}>Login</Link>
+            <Link to="/register" className="btn-signup" onClick={() => setIsOpen(false)}>Sign Up</Link>          
           </div>
         </div>
-    </div>
-  )
-}
+      </div>
+    </nav>
+  );
+};
 
 export default Navbar;
