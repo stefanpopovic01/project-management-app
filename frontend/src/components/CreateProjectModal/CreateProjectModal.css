@@ -207,3 +207,10 @@
   align-items: center;
   gap: 0.5rem;
 }
+
+@media (max-width: 768px) {
+  .cp-modal{
+    max-width: 79%;
+  }
+
+}
