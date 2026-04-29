@@ -45,7 +45,7 @@ useEffect(() => {
         <div className="dh-sidebar-group">
           <a href="#" className="dh-sidebar-link" onClick={() => navigate("/dashboard")}>
             <div className="dh-sidebar-left">
-                <i class="fa-solid fa-circle-user"></i>
+                <i className="fa-solid fa-circle-user"></i>
               <span>For You</span>
             </div>
             <i className="fa-solid fa-chevron-right dh-sidebar-arrow"></i>

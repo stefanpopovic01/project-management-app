@@ -116,8 +116,8 @@ const notificationDropdown = () => {
             </div>
             <div className='dashboard-h-search'>
                 <input type='text' placeholder='Search' value={searchTerm} onChange={(e) => handleSearchInput(e)}></input>
-                <button onClick={onClose}><i class="fa-solid fa-plus"></i> Create</button>
-                <i class="fa-brands fa-sistrix"></i>
+                <button onClick={onClose}><i className="fa-solid fa-plus"></i> Create</button>
+                <i className="fa-brands fa-sistrix"></i>
 
             {activeDropdown === "search" && (
             <div className='db-search-dropdown'>
@@ -154,7 +154,7 @@ const notificationDropdown = () => {
             )}
             </div>
             <div className='dashboard-h-profile'>
-                <i class="fa-regular fa-bell" onClick={() => notificationDropdown()}></i>
+                <i className="fa-regular fa-bell" onClick={() => notificationDropdown()}></i>
                 {activeDropdown === "notifications" && (
                     <div className="dh-notif-container">
                     <div className="dh-notif-header">
@@ -192,7 +192,7 @@ const notificationDropdown = () => {
                     </div>
                 )}
 
-                <i class="fa-regular fa-circle-question" onClick={() => toggleDropdown("help")}></i>
+                <i className="fa-regular fa-circle-question" onClick={() => toggleDropdown("help")}></i>
                 {activeDropdown === "help" && (
                 <div className="dh-help-container">
                 <div className="dh-help-header">
@@ -249,7 +249,7 @@ const notificationDropdown = () => {
                 </div>
                 )}
 
-                <i class="fa-solid fa-gear" onClick={() => navigate(`/dashboard-profile/${id}`)}></i>
+                <i className="fa-solid fa-gear" onClick={() => navigate(`/dashboard-profile/${id}`)}></i>
                 <div
                     className="dh-profile-logo"
                     onClick={() => toggleDropdown("profile")}
@@ -282,19 +282,19 @@ const notificationDropdown = () => {
                             </div>
                         </div>
                         <div className='dh-dropdown-profile-a' onClick={() => navigateToProfile()}>
-                            <i class="fa-regular fa-user"></i>
+                            <i className="fa-regular fa-user"></i>
                             <p>Profile</p>
                         </div>
                         <div className='dh-dropdown-profile-a' onClick={() => navigateToProfile()}>
-                            <i class="fa-solid fa-gear"></i>
+                            <i className="fa-solid fa-gear"></i>
                             <p>Account settings</p>
                         </div>
                         <div className='dh-dropdown-profile-a' onClick={() => switchProfiles()}>
-                            <i class="fa-solid fa-user"></i>
+                            <i className="fa-solid fa-user"></i>
                             <p>Switch accouts</p>
                         </div>
                         <div className='dh-dropdown-profile-a  dh-topline' onClick={() => switchProfiles()}>
-                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                            <i className="fa-solid fa-arrow-right-from-bracket"></i>
                             <p>Logout</p>
                         </div>
                     </div>
