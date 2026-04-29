@@ -1,43 +1,55 @@
 import "./Footer.css";
-import logo from '../../assets/logo.png'
+import logo from "../../assets/logo2.png"
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
-    <footer className="footer-container">
-      <div className="footer-frame">
-        <div className="footer-inner">
-
-          <div className="footer-left">
-            <img src={logo} alt="Logo" />
-            <p>Manage projects, tasks, and teams in one clear, focused workspace.</p>
+    <footer className="footer">
+      <div className="footer-top">
+        <div className="footer-brand">
+          <div className="footer-logo">
+            <img src={logo} alt="Flowly" className="footer-logo-img" />
+            <span className="footer-logo-text">Flowly</span>
           </div>
-
-          <div className="footer-right">
-            <div className="footer-col">
-              <h4>Product</h4>
-              <a href="#">Features</a>
-              <a href="#">Pricing</a>
-              <a href="#">Docs</a>
-            </div>
-
-            <div className="footer-col">
-              <h4>Company</h4>
-              <a href="#">About</a>
-              <a href="#">Careers</a>
-              <a href="#">Contact</a>
-            </div>
-
-            <div className="footer-col">
-              <h4>Legal</h4>
-              <a href="#">Privacy</a>
-              <a href="#">Terms</a>
-            </div>
+          <p className="footer-tagline">
+            Where teams move projects from idea to done — together.
+          </p>
+          <div className="footer-socials">
+            <a href="#" className="social-dot" aria-label="Twitter">𝕏</a>
+            <a href="https://www.linkedin.com/in/stefan-popovi%C4%87-03676a2a8/" className="social-dot" aria-label="LinkedIn">in</a>
+            <a href="https://github.com/stefanpopovic01" className="social-dot" aria-label="GitHub">gh</a>
           </div>
         </div>
 
-        <div className="footer-bottom">
-          © {new Date().getFullYear()} Flowly. All rights reserved.
+        <div className="footer-cols">
+          <div className="footer-col">
+            <h4 className="footer-col-title">Product</h4>
+            <ul>
+              <li><Link to="/">Home</Link></li>
+              <li><Link to="/login">Login</Link></li>
+              <li><Link to="/register">Sign Up</Link></li>
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h4 className="footer-col-title">Company</h4>
+            <ul>
+              <li><a href="/about">About Us</a></li>
+              <li><a href="/contact">Contact</a></li>
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h4 className="footer-col-title">Legal</h4>
+            <ul>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+            </ul>
+          </div>
         </div>
+      </div>
+
+      <div className="footer-bottom">
+        <span>© {new Date().getFullYear()} Flowly. All rights reserved.</span>
+        <span className="footer-bottom-right">Built for teams that ship.</span>
       </div>
     </footer>
   );
