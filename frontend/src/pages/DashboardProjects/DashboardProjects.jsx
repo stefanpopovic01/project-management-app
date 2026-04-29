@@ -9,89 +9,6 @@ import { useContext } from "react";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 
-export const ALL_PROJECTS = [
-  {
-    id: "69dd2a1c7d023e88862de498", ownership: "owned",
-    title: "Design System v3",
-    description: "A comprehensive component library in Figma with React integration, covering tokens, patterns, and full documentation.",
-    status: "active", deadline: "2025-06-15",
-    tasksTotal: 24, tasksDone: 18,
-    owner: { name: "Alex Morrison", initials: "AM" },
-    members: [
-      { name: "Alex Morrison", initials: "AM" },
-      { name: "Sara Kim",      initials: "SK" },
-      { name: "Tom Reed",      initials: "TR" },
-      { name: "Lena Park",     initials: "LP" },
-    ],
-  },
-  {
-    id: 2, ownership: "owned",
-    title: "Onboarding Flow Redesign",
-    description: "End-to-end redesign of the new user onboarding experience, targeting a 30%+ reduction in drop-off.",
-    status: "review", deadline: "2025-04-30",
-    tasksTotal: 16, tasksDone: 14,
-    owner: { name: "Alex Morrison", initials: "AM" },
-    members: [
-      { name: "Alex Morrison", initials: "AM" },
-      { name: "Jamie Liu",     initials: "JL" },
-    ],
-  },
-  {
-    id: 3, ownership: "owned",
-    title: "Mobile App Audit",
-    description: "Accessibility and performance audit across iOS and Android with a prioritised fix backlog.",
-    status: "archived", deadline: "2024-12-01",
-    tasksTotal: 20, tasksDone: 20,
-    owner: { name: "Alex Morrison", initials: "AM" },
-    members: [
-      { name: "Alex Morrison", initials: "AM" },
-      { name: "Chris Wong",    initials: "CW" },
-      { name: "Mia Torres",    initials: "MT" },
-    ],
-  },
-  {
-    id: 4, ownership: "assigned",
-    title: "Checkout Optimisation",
-    description: "Reducing checkout friction across the purchase funnel, shipping 6 incremental improvements in Q3.",
-    status: "active", deadline: "2025-05-20",
-    tasksTotal: 12, tasksDone: 5,
-    owner: { name: "Sara Kim", initials: "SK" },
-    members: [
-      { name: "Sara Kim",      initials: "SK" },
-      { name: "Alex Morrison", initials: "AM" },
-      { name: "Tom Reed",      initials: "TR" },
-      { name: "Lena Park",     initials: "LP" },
-      { name: "Jamie Liu",     initials: "JL" },
-    ],
-  },
-  {
-    id: 5, ownership: "assigned",
-    title: "Brand Refresh 2025",
-    description: "Supporting the brand team on iconography, illustration style, and motion design guidelines.",
-    status: "planning", deadline: "2025-08-01",
-    tasksTotal: 30, tasksDone: 3,
-    owner: { name: "Mia Torres", initials: "MT" },
-    members: [
-      { name: "Mia Torres",    initials: "MT" },
-      { name: "Alex Morrison", initials: "AM" },
-      { name: "Jamie Liu",     initials: "JL" },
-    ],
-  },
-  {
-    id: 6, ownership: "assigned",
-    title: "API Developer Portal",
-    description: "UX lead on the developer-facing documentation portal — IA, navigation, and code sample formatting.",
-    status: "review", deadline: "2025-05-10",
-    tasksTotal: 18, tasksDone: 15,
-    owner: { name: "Chris Wong", initials: "CW" },
-    members: [
-      { name: "Chris Wong",    initials: "CW" },
-      { name: "Alex Morrison", initials: "AM" },
-      { name: "Sara Kim",      initials: "SK" },
-    ],
-  },
-];
-
 const Icon = {
   plus: (
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7">
@@ -288,7 +205,6 @@ export default function DashboardProjects() {
     <div className="dproj-page">
       <div className="dproj-inner">
 
-        {/*  Page header */}
         <div className="dproj-page-header">
           <div>
             <h1 className="dproj-page-title">Projects</h1>
@@ -301,7 +217,6 @@ export default function DashboardProjects() {
           </div>
         </div>
 
-        {/*  Toolbar  */}
         <div className="dproj-toolbar">
           <div className="dproj-search-wrap">
             <svg className="dproj-search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7">
@@ -317,7 +232,6 @@ export default function DashboardProjects() {
           </div>
         </div>
 
-        {/*  My Projects  */}
         <div className="dproj-section-head">
           <span className="dproj-section-title">My Projects</span>
           <span className="dproj-section-badge">{projects.totalCount}</span>
@@ -353,7 +267,6 @@ export default function DashboardProjects() {
           )}
         </div>
 
-        {/*  Assigned to Me  */}
         <div className="dproj-section-head" style={{ marginTop: "2.5rem" }}>
           <span className="dproj-section-title">Assigned to Me</span>
           <span className="dproj-section-badge" style={{ background: "rgba(167,139,250,0.12)", color: "#7c3aed" }}>
