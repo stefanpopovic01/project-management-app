@@ -80,3 +80,14 @@
     bottom: 0%;
     width: 23%;
 }
+
+@media (max-width: 768px) {
+  .register-form{
+    width: 18rem;
+  }
+
+  .backgroundImg1, .backgroundImg2{
+    display: none;
+  }
+
+}

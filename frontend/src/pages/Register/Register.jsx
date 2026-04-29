@@ -9,6 +9,7 @@ import backgroundimg2 from '../../assets/login2.png'
 function Register() {
 
   const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password1, setPassword1] = useState("");
@@ -27,7 +28,7 @@ function Register() {
     }
 
     try {
-      const res = await register({ email, password, firstName });
+      const res = await register({ email, password, firstName, lastName });
 
       setSuccess(true);
       setError("");
@@ -51,6 +52,9 @@ function Register() {
 
         <label>First name</label>
         <input type="text" placeholder="Enter name" required value={firstName} onChange={(e) => setFirstName(e.target.value)}/>
+    
+        <label>Last name</label>
+        <input type="text" placeholder="Enter last name" required value={lastName} onChange={(e) => setLastName(e.target.value)}/>
 
         <label>Email</label>
         <input type="email" placeholder="Enter email" required value={email} onChange={(e) => setEmail(e.target.value)}/>
