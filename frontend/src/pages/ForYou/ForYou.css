@@ -543,6 +543,7 @@
   .fy-stat { min-width: 40%; border-right: none; border-bottom: 0.0625rem solid rgba(255,255,255,0.12); }
   .fy-stat:nth-child(odd) { border-right: 0.0625rem solid rgba(255,255,255,0.12); }
   .fy-hero-date { display: none; }
+  .fy-card{ max-width: 92vw; }
 }
 
 @media (max-width: 30rem) {

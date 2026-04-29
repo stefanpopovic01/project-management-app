@@ -115,11 +115,7 @@ export default function ForYou({ currentUser }) {
   const dateLabel = formatDateDisplay();
 
   const handleProjectClick = (project) => {
-    navigate(`/projects/${project.id}`, { state: { project } });
-  };
-
-  const handleTaskClick = (task) => {
-    navigate(`/projects/${task.projectId}`);
+    navigate(`/dashboard-projects/${project._id}`, { state: { project } });
   };
 
   const [loading, setLoading] = useState(true)
@@ -247,12 +243,12 @@ export default function ForYou({ currentUser }) {
               <div className="fy-proj-list">
                 <div className="fy-proj-section-label">My Projects</div>
                 {projects.count > 0
-                  ? projects.projects.slice(0, 4).map(p => <ProjectRow key={p._id} project={p} userId={id} onClick={handleProjectClick} />)
+                  ? projects.projects.slice(0, 4).map(p => <ProjectRow key={p._id} project={p} userId={id} onClick={() => handleProjectClick(p)} />)
                   : <div className="fy-empty"><span className="fy-empty-icon">📁</span>No projects yet.</div>
                 }
                 <div className="fy-proj-section-label" style={{ marginTop: "0.5rem" }}>Assigned to Me</div>
                 {assigned.count > 0
-                  ? assigned.projects.slice(0, 4).map(p => <ProjectRow key={p._id} project={p} onClick={handleProjectClick} />)
+                  ? assigned.projects.slice(0, 4).map(p => <ProjectRow key={p._id} project={p} onClick={() => handleProjectClick(p)} />)
                   : <div className="fy-empty"><span className="fy-empty-icon">🤝</span>None assigned yet.</div>
                 }
               </div>
@@ -271,7 +267,7 @@ export default function ForYou({ currentUser }) {
 
               <div className="fy-tasks-list">
                 {userTasks.stats.total > 0
-                  ? userTasks.tasks.slice(0, 4).map(t => <TaskRow key={t._id} task={t} onClick={handleTaskClick} />)
+                  ? userTasks.tasks.slice(0, 4).map(t => <TaskRow key={t._id} task={t} />)
                   : (
                     <div className="fy-empty">
                       <span className="fy-empty-icon">✅</span>
@@ -343,7 +339,7 @@ export default function ForYou({ currentUser }) {
                   <span className="fy-quicklink-arrow">{Icon.chevRight}</span>
                 </button>
 
-                <button className="fy-quicklink-btn" onClick={() => navigate("/projects/1")}>
+                <button  className="fy-quicklink-btn"  onClick={() => projects?.projects?.[0] && handleProjectClick(projects.projects[0])} >
                   <div className="fy-quicklink-icon green">{Icon.task}</div>
                   <div>
                     {projects.count > 0 && projects.projects.length > 0 ? (
