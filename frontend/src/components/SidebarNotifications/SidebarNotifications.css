@@ -199,3 +199,12 @@
     transform: rotate(360deg);
   }
 }  
+
+
+@media (max-width: 768px) {
+  .sn-container{
+    width: 290px;
+    left: 105%;
+    top: 10%;
+  }
+}
