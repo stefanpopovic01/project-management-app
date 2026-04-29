@@ -219,20 +219,18 @@ export default function DashboardProfile() {
     <>
       <div className="dp-page">
 
-        {/* ── Banner ── */}
         <div className="dp-banner-wrap">
           <div className="dp-banner">
             <div className="dp-banner-dots" />
-            {isOwnProfile && (
+            {/* {isOwnProfile && (
               <button className="dp-banner-edit-btn">
                 {Icon.pencil}
                 Edit banner
               </button>
-            )}
+            )} */}
           </div>
         </div>
 
-        {/* Profile card */}
         <div className="dp-container">
           <div className="dp-profile-card">
 
@@ -288,7 +286,6 @@ export default function DashboardProfile() {
               </div>
             </div>
 
-            {/* Stats */}
             <div className="dp-stats-strip">
               <div className="dp-stat">
                 <div className="dp-stat-value">{projects.count}</div>
@@ -309,7 +306,6 @@ export default function DashboardProfile() {
             </div>
           </div>
 
-          {/*  Content grid  */}
           <div className="dp-content">
             <div className="dp-section">
               <div className="dp-section-header">
@@ -337,7 +333,7 @@ export default function DashboardProfile() {
               <div className="dp-projects-list">
                 {assigned.count > 0
                   ? assigned.projects.map((p) => (
-                      <ProjectCard key={p._id} project={p} showRole />
+                      <ProjectCard key={p._id} project={p} />
                     ))
                   : <div className="dp-empty">No collaborations yet.</div>}
               </div>
