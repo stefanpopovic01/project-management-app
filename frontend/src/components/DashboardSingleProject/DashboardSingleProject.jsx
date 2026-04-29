@@ -809,7 +809,6 @@ const handleRemoveMember = async (userId) => {
             <div className="dsp-dlabel">Members ({members.length})</div>
             <div className="dsp-member-list">
               {members.map(m => {
-                // const isOwner = m.name === project.owner.name;
                 return (
                   <div key={m._id} className="dsp-member-row">
                     <div className="dsp-member-av">
@@ -1092,20 +1091,18 @@ export default function DashboardSingleProject() {
           </div>
         </div>
 
-
-        {/* Kanban board */}
         <div className="dsp-board-wrap">
           <div className="dsp-board">
             {COLUMNS.map(col => {
               const colTasks = (tasks1.tasks || []).filter(t => t.status === col.id);
-              const isOver = dragOverCol === col.id; // “Which column is glowing right now because I’m dragging something over it?”
+              const isOver = dragOverCol === col.id; 
               return (
                 <div
                   key={col.id}
                   className={`dsp-col${isOver ? " drag-over" : ""}`}
-                  onDragOver={e => handleDragOver(e, col.id)} // pogledati
-                  onDragLeave={() => setDragOverCol(null)} // pogledati
-                  onDrop={e => handleDrop(e, col.id)} // pogledati
+                  onDragOver={e => handleDragOver(e, col.id)}
+                  onDragLeave={() => setDragOverCol(null)}
+                  onDrop={e => handleDrop(e, col.id)}
                 >
                   <div className="dsp-col-header">
                     <div className="dsp-col-title-wrap">
@@ -1116,7 +1113,7 @@ export default function DashboardSingleProject() {
                   {isOwner && (
                     <button
                       className="dsp-col-add-btn"
-                      onClick={() => openAddTask(col.id)} // dodavanje taskova, implementirati nakon ovog
+                      onClick={() => openAddTask(col.id)}
                       aria-label={`Add task to ${col.label}`}
                       title="Add task"
                     >
