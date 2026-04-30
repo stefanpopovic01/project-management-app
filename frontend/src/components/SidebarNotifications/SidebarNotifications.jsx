@@ -8,7 +8,7 @@ import { getUserProjects } from "../../api/services/projectServices";
 import { markAsRead, markAllRead } from "../../api/services/notificationServices";
 import { respondInvite } from "../../api/services/projectServices";
 
-const SidebarNotifications = () => {
+const SidebarNotifications = ({ onClose }) => {
 
     const { user } = useContext(AuthContext);
     const id = user.id;
@@ -113,6 +113,7 @@ return (
 
     <div className="sn-header">
       <h2>Notifications</h2>
+      <i className="fa-solid fa-xmark notifMenu" onClick={() => onClose(prev => !prev)}></i>
     </div>
 
     <div className="sn-list">
@@ -128,11 +129,11 @@ return (
             const actor = notif.actor;
             const isInvite = notif.type === "member_invited";
 
-const memberStatus = notif.project?.members?.find(
-  m => m.user?._id === id
-)?.status;
+            const memberStatus = notif.project?.members?.find(
+              m => m.user?._id === id
+            )?.status;
 
-const isPending = memberStatus === "pending";
+            const isPending = memberStatus === "pending";
 
             return (
               <div className="sn-item sn-invite" key={index}>
@@ -140,7 +141,7 @@ const isPending = memberStatus === "pending";
                   {actor?.avatarUrl ? (
                     <img src={actor.avatarUrl} alt="profile" />
                   ) : (
-                    <span className="header-initials">
+                    <span className="notif-initials">
                       {(actor?.firstName?.[0]?.toUpperCase() || "") +
                         (actor?.lastName?.[0]?.toUpperCase() || "")}
                     </span>

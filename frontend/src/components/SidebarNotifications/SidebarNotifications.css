@@ -55,7 +55,8 @@
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  background: #e3e8f5;
+  background: #d8dff0;
+  display: flex; justify-content: center; align-items: center;
 }
 
 .sn-avatar img {
@@ -194,6 +195,22 @@
   font-size: 20px;
 }
 
+.fa-solid.fa-xmark.notifMenu{
+  color: rgb(120, 120, 120);
+  cursor: pointer;
+  position: absolute;
+  left: 92%;
+  bottom: 91%;
+  font-size: 1.1rem;
+}
+
+.notif-initials{
+  text-align: center;
+  color: rgb(24, 104, 219);
+  font-weight: 600;
+  display: flex; justify-content: center; align-items: center;
+}
+
 @keyframes sn-spin {
   to {
     transform: rotate(360deg);
@@ -207,4 +224,12 @@
     left: 105%;
     top: 10%;
   }
+
+.fa-solid.fa-xmark.notifMenu{
+  left: 89%;
+  bottom: 91%;
+}
+
+
+
 }

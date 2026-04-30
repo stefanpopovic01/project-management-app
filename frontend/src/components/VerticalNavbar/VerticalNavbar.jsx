@@ -82,7 +82,7 @@ useEffect(() => {
               <i className="fa-solid fa-chevron-right dh-sidebar-arrow"></i>
             </a>
 
-              {notificationMenu && (<SidebarNotifications/> )}
+              {notificationMenu && (<SidebarNotifications onClose={setNotificationMenu}/> )}
 
             <a href="#" className="dh-sidebar-link" onClick={() => { navigate(`/dashboard-profile/${id}`); setSidebarOpen(false); }}>
               <div className="dh-sidebar-left">
