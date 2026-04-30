@@ -308,8 +308,8 @@ async function getAssignedProjects(req, res) {
     const projects = await Project.find(query)
       .sort({ createdAt: -1 })
       .limit(aLimit ? parseInt(aLimit) : 0)
-      .populate("creator", "firstName lastName email")
-      .populate("members.user", "avatarUrl");
+      .populate("creator", "firstName lastName email avatarUrl")
+      .populate("members.user", "avatarUrl firstName lastName");
 
     const projectsWithStats = await Promise.all(
       projects.map(async (project) => {
