@@ -39,6 +39,7 @@ function Login() {
 
   return (
     <div className="login-container">
+    <div className="hero-grid-bg" />
       <form className="login-form" onSubmit={handeLogin}>
         <h2>Login</h2>
 

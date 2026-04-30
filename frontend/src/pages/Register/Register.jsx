@@ -47,6 +47,7 @@ function Register() {
 
   return (
     <div className="register-container" onSubmit={handleRegister}>
+    <div className="hero-grid-bg" />
       <form className="register-form">
         <h2>Register</h2>
 

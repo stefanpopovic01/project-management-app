@@ -71,14 +71,14 @@
     position: absolute;
     bottom: 0%;
     left: 0%;
-    width: 23%;
+    width: 30%;
 }
 
 .backgroundImg2{
     position: absolute;
     right: 0%;
     bottom: 0%;
-    width: 23%;
+    width: 30%;
 }
 
 @media (max-width: 768px) {
@@ -87,7 +87,8 @@
   }
 
   .backgroundImg1, .backgroundImg2{
-    display: none;
+    width: 30%;
+    display: block;
   }
 
 }
