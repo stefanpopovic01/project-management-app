@@ -190,7 +190,7 @@ return (
       <div className="dh-notif-container">
         <div className="dh-notif-header">
           <span>Recent notifications</span>
-          <i className="fa-solid fa-bell"></i>
+        <i className="fa-regular fa-circle-xmark" onClick={() => notificationDropdown()}></i>
         </div>
         <div className="dh-notif-list">
           {notifications.slice(0, 10).map((notif, index) => (
