@@ -14,13 +14,13 @@ const hpp = require('hpp');
 const app = express()
 
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("Povezan sa bazom."))
-.catch(() => console.log("Nije povezan sa bazom."));
+.then(() => console.log("Conntected with DB."))
+.catch((err) => console.error("DB connection failed:", err.message));
 
 app.use(helmet());
 
 const corsOptions = {
-    origin: 'http://localhost:5173', 
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     optionsSuccessStatus: 200 
@@ -64,7 +64,8 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(3001);
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 
 

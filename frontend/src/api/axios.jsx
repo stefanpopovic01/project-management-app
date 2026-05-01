@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "http://localhost:3001",
+    baseURL: import.meta.env.VITE_API_URL || "http://localhost:3001",
     timeout: 10000,
     headers: {
     "Content-Type": "application/json",
@@ -16,9 +16,11 @@ api.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
         }
 
-        console.log("[REQUEST]", config.method.toUpperCase(), config.url);
-        console.log("[DATA]", config.data);
-        console.log("[HEADERS]", config.headers);
+        if (import.meta.env.DEV) {
+            console.log("[REQUEST]", config.method.toUpperCase(), config.url);
+            console.log("[DATA]", config.data);
+            console.log("[HEADERS]", config.headers);
+        }
 
         return config;
     },
@@ -30,8 +32,10 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
     (response) => {
-        console.log("[RESPONSE]", response.status, response.config.url);
-        console.log("[DATA]", response.data);
+        if (import.meta.env.DEV) {
+            console.log("[RESPONSE]", response.status, response.config.url);
+            console.log("[DATA]", response.data);
+        }
 
         return response;
     },
