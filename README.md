@@ -6,6 +6,10 @@ A full-stack project management web application built with React, Express, and M
 
 [flowly.vercel.app](https://project-management-app-omega-umber.vercel.app)
 
+Demo credentials:
+- Email: alex.morrison@figma.com
+- Password: 12345
+
 ## Features
 
 ### Users & Social
