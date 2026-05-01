@@ -6,7 +6,7 @@ import { getProject, updateProject, removeProjectMember, invite } from "../../ap
 import { getTask, createTask, getProjectTasks } from "../../api/services/taskServices";
 import { updateTaskStatus, updateChecklistItem, addComment} from "../../api/services/taskServices";
 import { getUsers } from "../../api/services/userServices";
-import { AuthContext } from "../../contex/authContext";
+import { AuthContext } from "../../contex/AuthContext";
 
 
 const Icon = {

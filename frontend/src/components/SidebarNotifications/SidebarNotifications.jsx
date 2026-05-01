@@ -2,7 +2,7 @@ import "./SidebarNotifications.css";
 import { getNotifications } from "../../api/services/notificationServices";
 import { useState } from "react";
 import { useEffect } from "react";
-import { AuthContext } from "../../contex/authContext";
+import { AuthContext } from "../../contex/AuthContext";
 import { useContext } from "react";
 import { getUserProjects } from "../../api/services/projectServices";
 import { markAsRead, markAllRead } from "../../api/services/notificationServices";

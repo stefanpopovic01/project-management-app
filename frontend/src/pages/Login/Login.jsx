@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Login.css'
 
 import { login } from '../../api/services/authServices';
-import { AuthContext } from '../../contex/authContext';
+import { AuthContext } from '../../contex/AuthContext';
 
 import backgroundimg1 from '../../assets/login1.png';
 import backgroundimg2 from '../../assets/login2.png'

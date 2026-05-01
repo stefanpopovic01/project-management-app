@@ -1,7 +1,7 @@
 import React, { useMemo, useContext, useState, useEffect } from "react";
 import "./ForYou.css";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../contex/authContext";
+import { AuthContext } from "../../contex/AuthContext";
 import { getAllUserTasks } from "../../api/services/taskServices";
 import { getUserProjects, getAssignedProjects } from "../../api/services/projectServices";
 import { getNotifications } from "../../api/services/notificationServices";

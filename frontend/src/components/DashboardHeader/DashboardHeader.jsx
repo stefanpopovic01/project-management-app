@@ -2,7 +2,7 @@ import { React, useState, useContext, useEffect } from 'react';
 import './DashboardHeader.css'
 
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../contex/authContext';
+import { AuthContext } from '../../contex/AuthContext';
 import { getNotifications } from '../../api/services/notificationServices';
 
 import logo from '../../assets/logo.png'

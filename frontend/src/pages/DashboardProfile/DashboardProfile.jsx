@@ -6,7 +6,7 @@ import { getUserProjects, getAssignedProjects } from "../../api/services/project
 import { getAllUserTasks } from "../../api/services/taskServices";
 import { formatTimeAgo } from "..//../utils/formatDate";
 import EditProfileDrawer from "../../components/EditProfile/EditProfileDrawer"
-import { AuthContext } from "../../contex/authContext";
+import { AuthContext } from "../../contex/AuthContext";
 
 const Icon = {
   pencil: (

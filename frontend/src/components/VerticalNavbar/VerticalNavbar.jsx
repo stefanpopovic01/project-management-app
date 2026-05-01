@@ -1,7 +1,7 @@
 import "./VerticalNavbar.css";
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from "../../contex/authContext";
+import { AuthContext } from "../../contex/AuthContext";
 
 import SidebarNotifications from "../SidebarNotifications/SidebarNotifications";
 import CreateProjectModal from "../CreateProjectModal/CreateProjectModal";

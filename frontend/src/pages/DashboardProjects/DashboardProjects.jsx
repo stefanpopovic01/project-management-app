@@ -4,7 +4,7 @@ import "./DashboardProjects.css";
 
 import CreateProjectModal from "../../components/CreateProjectModal/CreateProjectModal";
 import { getUserProjects, getAssignedProjects } from "../../api/services/projectServices";
-import { AuthContext } from "../../contex/authContext";
+import { AuthContext } from "../../contex/AuthContext";
 import { useContext } from "react";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
